@@ -1,0 +1,182 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+enum Role {
+  STUDENT
+  PROFESSOR
+  ADMIN
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum NotificationType {
+  MATERIAL_UPLOADED
+  QUIZ_PUBLISHED
+  QUIZ_RESULT
+  STUDENT_ENROLLED
+  ASSIGNMENT_PUBLISHED
+  ASSIGNMENT_DEADLINE
+  ASSIGNMENT_SUBMISSION
+  COURSE_UPDATE
+  GENERAL
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  role          Role           @default(STUDENT)
+  profileImage  String?
+  enrollments   Enrollment[]
+  materials     Material[]     @relation("UploadedBy")
+  quizAttempts  QuizAttempt[]
+  loginActivity LoginActivity?
+  notifications Notification[] @relation("UserNotifications")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model LoginActivity {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  firstAccessAt DateTime @default(now())
+  lastAccessAt  DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id                String           @id @default(uuid())
+  recipientUserId   String
+  courseId          String?
+  title             String
+  message           String
+  type              NotificationType @default(GENERAL)
+  isRead            Boolean          @default(false)
+  relatedResourceId String?
+  linkUrl           String?
+  createdAt         DateTime         @default(now())
+  recipient         User             @relation("UserNotifications", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  course            Course?          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([recipientUserId, isRead])
+  @@index([createdAt])
+}
+
+model Course {
+  id            String         @id @default(uuid())
+  code          String         @unique // e.g. "CS401"
+  title         String
+  description   String?
+  enrollments   Enrollment[]
+  materials     Material[]
+  quizzes       Quiz[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  role      Role     @default(STUDENT)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model Material {
+  id           String           @id @default(uuid())
+  courseId     String
+  uploaderId   String
+  title        String
+  fileName     String
+  filePath     String
+  fileSize     Int?
+  status       ProcessingStatus @default(PENDING)
+  errorMessage String?
+  course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  uploader     User             @relation("UploadedBy", fields: [uploaderId], references: [id])
+  chunks       DocumentChunk[]
+  quizzes      Quiz[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model DocumentChunk {
+  id         String                      @id @default(uuid())
+  materialId String
+  chunkIndex Int
+  pageNumber Int
+  content    String
+  embedding  Unsupported("vector(768)")?
+  material   Material                    @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@index([materialId])
+}
+
+model Quiz {
+  id           String           @id @default(uuid())
+  courseId     String
+  materialId   String?
+  title        String
+  topic        String
+  status       ProcessingStatus @default(READY)
+  errorMessage String?
+  questions    Question[]
+  attempts     QuizAttempt[]
+  course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  material     Material?        @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model Question {
+  id            String          @id @default(uuid())
+  quizId        String
+  questionText  String
+  options       String[]        // Array of 4 string options
+  correctIndex  Int             // 0-3; private to backend during attempt
+  explanation   String
+  pageReference Int?
+  quiz          Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers       AttemptAnswer[]
+}
+
+model QuizAttempt {
+  id        String          @id @default(uuid())
+  quizId    String
+  studentId String
+  score     Float
+  maxScore  Float
+  quiz      Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student   User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers   AttemptAnswer[]
+  createdAt DateTime        @default(now())
+}
+
+model AttemptAnswer {
+  id             String      @id @default(uuid())
+  attemptId      String
+  questionId     String
+  selectedOption Int
+  isCorrect      Boolean
+  attempt        QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,92 @@
+# =========================================================================
+# EduFlow - Root Git Ignore Configuration
+# =========================================================================
+
+# Dependencies
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# Build and Output Directories
+.next/
+*/.next/
+dist/
+*/dist/
+build/
+*/build/
+out/
+*/out/
+
+# Environment Variables and Secrets (MUST NOT BE COMMITTED)
+.env
+.env.*
+*.env
+backend/.env
+backend/.env.*
+frontend/.env.local
+frontend/.env.*.local
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
+
+# Explicitly allow template configuration files to be shared with teammates
+!.env.example
+!**/.env.example
+
+# Uploaded Files, Student Documents & Media
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs and Debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python Caches & Virtual Environments
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+
+# TypeScript / Cache
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
+.eslintcache
+
+# Database & Local Storage
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+pgdata/
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor Files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo

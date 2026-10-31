@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+build/
+
+# Uploaded documents and media files
+uploads/*
+!uploads/.gitkeep
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
