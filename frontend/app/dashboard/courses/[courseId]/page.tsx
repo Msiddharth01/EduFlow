@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -39,6 +39,11 @@ import {
   Target,
   ChevronDown,
   ChevronUp,
+  MoreVertical,
+  Edit3,
+  Trash2,
+  X,
+  AlertTriangle,
 } from 'lucide-react';
 
 function CourseWorkspaceContent() {
@@ -111,6 +116,89 @@ function CourseWorkspaceContent() {
       },
     ],
   });
+
+  // Course Actions Menu (Edit / Delete) State
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Edit Course Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', code: '', description: '' });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Delete Course Confirmation Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Close actions dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+        setShowActionsMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleOpenEditModal = () => {
+    if (!course) return;
+    setEditForm({
+      title: course.title || '',
+      code: course.code || '',
+      description: course.description || '',
+    });
+    setEditError(null);
+    setShowEditModal(true);
+  };
+
+  const handleSaveCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!courseId) return;
+
+    if (!editForm.title.trim()) {
+      setEditError('Course title is required.');
+      return;
+    }
+
+    if (!editForm.code.trim()) {
+      setEditError('Course code is required.');
+      return;
+    }
+
+    setEditLoading(true);
+    setEditError(null);
+
+    const res = await courseApi.update(courseId, {
+      title: editForm.title.trim(),
+      code: editForm.code.trim().toUpperCase(),
+      description: editForm.description.trim(),
+    });
+
+    if (res.success) {
+      await loadCourse();
+      setShowEditModal(false);
+    } else {
+      setEditError(res.error || 'Failed to update course.');
+    }
+    setEditLoading(false);
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!courseId) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    const res = await courseApi.delete(courseId);
+    if (res.success) {
+      router.push('/dashboard/teacher');
+    } else {
+      setDeleteError(res.error || 'Failed to delete course.');
+      setDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !user) router.push('/auth/login');
@@ -426,13 +514,68 @@ function CourseWorkspaceContent() {
 
           <div className="flex items-center gap-2">
             {isProfessor && (
-              <button
-                onClick={() => setActiveTab('materials')}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-all shadow-md shadow-indigo-600/20"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Material</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('materials')}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload Material</span>
+                </button>
+
+                {/* Three-dot Course Actions Menu (Edit / Delete) */}
+                <div className="relative" ref={actionsMenuRef}>
+                  <button
+                    onClick={() => setShowActionsMenu((prev) => !prev)}
+                    title="Course options"
+                    aria-label="Course options"
+                    className="p-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center border hover:border-indigo-500/50"
+                    style={{
+                      backgroundColor: 'var(--bg-card)',
+                      borderColor: 'var(--border-color)',
+                      color: 'var(--text-main)',
+                    }}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+
+                  {showActionsMenu && (
+                    <div
+                      className="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl py-1.5 z-40"
+                      style={{
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          setShowActionsMenu(false);
+                          handleOpenEditModal();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium hover:bg-indigo-500/10 transition-colors text-left cursor-pointer"
+                        style={{ color: 'var(--text-main)' }}
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Edit Course</span>
+                      </button>
+
+                      <div className="h-px my-1" style={{ backgroundColor: 'var(--border-color)' }} />
+
+                      <button
+                        onClick={() => {
+                          setShowActionsMenu(false);
+                          setDeleteError(null);
+                          setShowDeleteModal(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <span>Delete Course</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -1610,6 +1753,225 @@ function CourseWorkspaceContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT COURSE MODAL */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div
+            className="w-full max-w-lg app-card rounded-2xl p-6 shadow-2xl space-y-4"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold" style={{ color: 'var(--text-main)' }}>Edit Course</h2>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Update course details and syllabus.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="p-1.5 rounded-lg transition-colors cursor-pointer"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editError && (
+              <div className="p-3 rounded-lg text-xs bg-red-950/40 border border-red-800/50 text-red-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveCourse} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Course Code <span className="text-red-400">*</span>
+                </label>
+                <input
+                  className="w-full px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-indigo-500 uppercase tracking-wide font-mono font-medium"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                  }}
+                  placeholder="e.g. CS401"
+                  value={editForm.code}
+                  onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
+                  required
+                  disabled={editLoading}
+                />
+                <p className="text-[11px] mt-1" style={{ color: 'var(--text-subtle)' }}>
+                  Unique identifier for students to enroll in this course.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Course Name / Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  className="w-full px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-indigo-500 font-medium"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                  }}
+                  placeholder="e.g. Distributed Operating Systems"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  required
+                  disabled={editLoading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Course Description & Syllabus
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                  }}
+                  placeholder="Provide a comprehensive summary of topics, learning objectives, and prerequisites..."
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  disabled={editLoading}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={editLoading}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--bg-subtle)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-main)',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20 cursor-pointer"
+                >
+                  {editLoading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE COURSE CONFIRMATION MODAL */}
+      {showDeleteModal && course && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div
+            className="w-full max-w-md app-card rounded-2xl p-6 shadow-2xl space-y-4"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-red-500/10 text-red-400 shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-red-400">Delete Course</h2>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  This action is permanent and cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 rounded-lg text-xs bg-red-950/40 border border-red-800/50 text-red-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <div
+              className="p-3.5 rounded-xl text-xs space-y-2 border"
+              style={{
+                backgroundColor: 'var(--bg-subtle)',
+                borderColor: 'var(--border-color)',
+              }}
+            >
+              <p style={{ color: 'var(--text-main)' }}>
+                Are you sure you want to delete <strong className="font-semibold" style={{ color: 'var(--text-main)' }}>{course.title}</strong>{' '}
+                (<span className="font-mono text-indigo-400 font-bold">{course.code}</span>)?
+              </p>
+              <div className="pt-2 border-t text-[11px] space-y-1.5" style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
+                <p className="font-semibold text-red-400">Permanently removing this course will also delete:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>All uploaded PDF materials & AI vector chunks</li>
+                  <li>All course quizzes, questions, and student quiz attempts</li>
+                  <li>All student course enrollments and progress records</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteLoading}
+                className="px-4 py-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-subtle)',
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-main)',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteCourse}
+                disabled={deleteLoading}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white transition-all flex items-center gap-1.5 shadow-md shadow-red-600/20 cursor-pointer"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Deleting Course...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Course</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

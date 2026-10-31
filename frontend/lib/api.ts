@@ -109,6 +109,15 @@ export const courseApi = {
     apiFetch<{ course: CourseDetails; userRole: string }>(`/courses/${courseId}`),
   create: (body: { code: string; title: string; description?: string }) =>
     apiFetch<{ course: Course }>('/courses', { method: 'POST', body: JSON.stringify(body) }),
+  update: (courseId: string, body: { code: string; title: string; description?: string }) =>
+    apiFetch<{ message: string; course: Course }>(`/courses/${courseId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  delete: (courseId: string) =>
+    apiFetch<{ message: string }>(`/courses/${courseId}`, {
+      method: 'DELETE',
+    }),
   enroll: (courseCode: string) =>
     apiFetch<{ message: string }>('/courses/enroll', { method: 'POST', body: JSON.stringify({ courseCode }) }),
 };

@@ -4,6 +4,8 @@ import {
   listUserCourses,
   enrollInCourse,
   getCourseDetails,
+  updateCourse,
+  deleteCourse,
 } from '../controllers/courseController.js';
 import { authenticateToken, requireRole } from '../middleware/authMiddleware.js';
 import { Role } from '@prisma/client';
@@ -21,6 +23,13 @@ router.get('/:courseId', getCourseDetails);
 
 // Only Professors or Admins can create courses
 router.post('/', requireRole([Role.PROFESSOR, Role.ADMIN]), createCourse);
+
+// Only Professors or Admins can update a course
+router.put('/:courseId', requireRole([Role.PROFESSOR, Role.ADMIN]), updateCourse);
+router.patch('/:courseId', requireRole([Role.PROFESSOR, Role.ADMIN]), updateCourse);
+
+// Only Professors or Admins can delete a course
+router.delete('/:courseId', requireRole([Role.PROFESSOR, Role.ADMIN]), deleteCourse);
 
 // Students can enroll in a course using courseCode
 router.post('/enroll', enrollInCourse);

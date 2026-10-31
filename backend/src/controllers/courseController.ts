@@ -1,7 +1,9 @@
+import path from 'path';
+import fs from 'fs';
 import { Response } from 'express';
 import { prisma } from '../config/db.js';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
-import { notifyCourseProfessors } from '../services/notificationService.js';
+import { notifyCourseProfessors, notifyEnrolledStudents } from '../services/notificationService.js';
 import { NotificationType } from '@prisma/client';
 
 export async function createCourse(req: AuthenticatedRequest, res: Response) {
@@ -273,3 +275,150 @@ export async function getCourseDetails(req: AuthenticatedRequest, res: Response)
     res.status(500).json({ error: 'Internal server error while fetching course details.' });
   }
 }
+
+export async function updateCourse(req: AuthenticatedRequest, res: Response) {
+  try {
+    const courseId = req.params.courseId as string;
+    const { code, title, description } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ error: 'Course ID is required.' });
+    }
+
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'Course title is required.' });
+    }
+
+    if (!code || typeof code !== 'string' || !code.trim()) {
+      return res.status(400).json({ error: 'Course code is required.' });
+    }
+
+    const formattedCode = code.trim().toUpperCase();
+
+    // Check course existence
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        enrollments: true,
+      },
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found.' });
+    }
+
+    // Authorization check: must be Professor teaching this course or Admin
+    const isProfessor = course.enrollments.some(
+      (e) => e.userId === req.user!.id && (e.role === 'PROFESSOR' || e.role === 'ADMIN')
+    );
+
+    if (!isProfessor && req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Only the course professor or admin can edit this course.' });
+    }
+
+    // Check for duplicate course code if code has changed
+    if (formattedCode !== course.code) {
+      const duplicate = await prisma.course.findFirst({
+        where: {
+          code: formattedCode,
+          id: { not: courseId },
+        },
+      });
+
+      if (duplicate) {
+        return res.status(409).json({ error: `A course with code '${formattedCode}' already exists.` });
+      }
+    }
+
+    const updatedCourse = await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        code: formattedCode,
+        title: title.trim(),
+        description: description !== undefined ? (description ? description.trim() : null) : course.description,
+      },
+    });
+
+    // Notify enrolled students of course update
+    notifyEnrolledStudents(courseId, {
+      title: 'Course Details Updated',
+      message: `${updatedCourse.title} (${updatedCourse.code}) details have been updated.`,
+      type: NotificationType.COURSE_UPDATE,
+      linkUrl: `/dashboard/courses/${courseId}`,
+    }).catch((notifErr) => {
+      console.error('[CourseUpdate] Failed to send update notification:', notifErr);
+    });
+
+    res.json({
+      message: 'Course updated successfully.',
+      course: updatedCourse,
+    });
+  } catch (error: any) {
+    console.error('Update course error:', error);
+    res.status(500).json({ error: 'Internal server error while updating course.' });
+  }
+}
+
+export async function deleteCourse(req: AuthenticatedRequest, res: Response) {
+  try {
+    const courseId = req.params.courseId as string;
+
+    if (!courseId) {
+      return res.status(400).json({ error: 'Course ID is required.' });
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        enrollments: true,
+        materials: {
+          select: { id: true, filePath: true, fileName: true },
+        },
+      },
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found.' });
+    }
+
+    // Authorization check: must be Professor teaching this course or Admin
+    const isProfessor = course.enrollments.some(
+      (e) => e.userId === req.user!.id && (e.role === 'PROFESSOR' || e.role === 'ADMIN')
+    );
+
+    if (!isProfessor && req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Only the course professor or admin can delete this course.' });
+    }
+
+    // Clean up uploaded files associated with this course from disk safely
+    const uploadDir = path.resolve(process.cwd(), 'uploads');
+    for (const mat of course.materials) {
+      if (mat.filePath) {
+        try {
+          const fullPath = path.resolve(uploadDir, mat.filePath);
+          if (fullPath.startsWith(uploadDir) && fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`[DeleteCourse] Removed file ${mat.filePath} for material '${mat.fileName}'`);
+          }
+        } catch (fsErr) {
+          console.warn(`[DeleteCourse] Warning: could not delete file on disk (${mat.filePath}):`, fsErr);
+        }
+      }
+    }
+
+    // Delete course in database (cascading deletes enrollments, materials, quizzes, attempts, questions, notifications)
+    await prisma.course.delete({
+      where: { id: courseId },
+    });
+
+    console.log(`[DeleteCourse] Course '${course.title}' (${course.code}, ID: ${courseId}) permanently deleted.`);
+
+    res.json({
+      message: `Course '${course.title}' (${course.code}) was permanently deleted.`,
+    });
+  } catch (error: any) {
+    console.error('Delete course error:', error);
+    res.status(500).json({ error: 'Internal server error while deleting course.' });
+  }
+}
+
