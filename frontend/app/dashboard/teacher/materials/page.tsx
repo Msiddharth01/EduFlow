@@ -254,10 +254,17 @@ export default function TeacherMaterialsPage() {
                         </td>
                         <td className="py-3.5 px-4">
                           {m.status === 'READY' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-                              <CheckCircle className="w-3 h-3" />
-                              RAG Ready
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                                <CheckCircle className="w-3 h-3" />
+                                RAG Ready
+                              </span>
+                              {m.errorMessage && (
+                                <div className="text-[10px] text-gray-400 max-w-xs truncate" title={m.errorMessage}>
+                                  {m.errorMessage}
+                                </div>
+                              )}
+                            </div>
                           )}
                           {m.status === 'PROCESSING' && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40 animate-pulse">
@@ -272,7 +279,7 @@ export default function TeacherMaterialsPage() {
                                 Processing Failed
                               </span>
                               {m.errorMessage && (
-                                <div className="text-[10px] text-rose-400 max-w-xs truncate">
+                                <div className="text-[10px] text-rose-400 max-w-xs truncate" title={m.errorMessage}>
                                   {m.errorMessage}
                                 </div>
                               )}
@@ -290,25 +297,24 @@ export default function TeacherMaterialsPage() {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleRetryProcessing(m.id)}
+                              disabled={retryingMaterialId === m.id}
+                              title="Reprocess PDF extraction & OCR fallback"
+                              className="px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${retryingMaterialId === m.id ? 'animate-spin' : ''}`} />
+                              <span>{retryingMaterialId === m.id ? 'Reprocessing...' : 'Reprocess'}</span>
+                            </button>
+
                             {m.status === 'READY' && (
                               <button
                                 onClick={() => handleGenerateQuiz(m.id)}
                                 disabled={generatingQuizId === m.id}
-                                className="px-2.5 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50"
+                                className="px-2.5 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                               >
                                 <Sparkles className="w-3 h-3" />
                                 <span>{generatingQuizId === m.id ? 'Generating...' : 'AI Quiz'}</span>
-                              </button>
-                            )}
-
-                            {m.status === 'FAILED' && (
-                              <button
-                                onClick={() => handleRetryProcessing(m.id)}
-                                disabled={retryingMaterialId === m.id}
-                                className="px-2.5 py-1 rounded bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50"
-                              >
-                                <RefreshCw className="w-3 h-3" />
-                                <span>{retryingMaterialId === m.id ? 'Retrying...' : 'Retry'}</span>
                               </button>
                             )}
 
@@ -332,19 +338,39 @@ export default function TeacherMaterialsPage() {
 
         {/* Upload Material Modal */}
         {showUploadModal && (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-md bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Upload className="w-5 h-5 text-indigo-400" />
-                <span>Upload Course Material</span>
-              </h2>
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="w-full max-w-md border rounded-2xl p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+                <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                  <Upload className="w-4 h-4 text-indigo-500" />
+                  <span>Upload Course Material</span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowUploadModal(false)}
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
 
               {uploadMsg && (
                 <div
                   className={`p-3 rounded-lg text-xs ${
                     uploadMsg.type === 'success'
-                      ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
-                      : 'bg-rose-950/60 text-rose-300 border border-rose-800/40'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30'
+                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/30'
                   }`}
                 >
                   {uploadMsg.text}
@@ -353,13 +379,13 @@ export default function TeacherMaterialsPage() {
 
               <form onSubmit={handleUpload} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                     Select Target Course
                   </label>
                   <select
                     value={selectedCourseId}
                     onChange={(e) => setSelectedCourseId(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg focus:outline-none focus:border-indigo-500"
+                    className="app-select text-xs"
                     required
                   >
                     {courses.map((c) => (
@@ -371,7 +397,7 @@ export default function TeacherMaterialsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                     Document Title (Optional)
                   </label>
                   <input
@@ -379,35 +405,36 @@ export default function TeacherMaterialsPage() {
                     placeholder="e.g. Module 1: Graph Algorithms"
                     value={uploadTitle}
                     onChange={(e) => setUploadTitle(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg focus:outline-none focus:border-indigo-500"
+                    className="app-input text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                     PDF File
                   </label>
                   <input
                     type="file"
                     accept="application/pdf"
                     onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                    className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                    style={{ color: 'var(--text-muted)' }}
                     required
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowUploadModal(false)}
-                    className="px-3.5 py-2 bg-[#162137] text-gray-300 text-xs font-semibold rounded-lg hover:bg-[#1e2d4d]"
+                    className="btn-secondary text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={uploading || !uploadFile}
-                    className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-500 disabled:opacity-50 inline-flex items-center gap-1.5"
+                    className="btn-primary text-xs"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>{uploading ? 'Uploading...' : 'Upload & Process'}</span>

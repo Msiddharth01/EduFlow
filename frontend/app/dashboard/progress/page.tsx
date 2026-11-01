@@ -55,51 +55,51 @@ export default function ProgressPage() {
   return (
     <AppLayout>
       <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
-        <div className="pb-4 border-b border-[#1b253b]">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-indigo-400" />
+        <div className="pb-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+          <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+            <TrendingUp className="w-6 h-6 text-indigo-500" />
             <span>Learning Progress & Topic Mastery</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             Real performance tracking computed exclusively from submitted quiz attempts and evaluated questions.
           </p>
         </div>
 
         {/* 3 Metric Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="flex items-center justify-between text-gray-400 mb-2">
+          <div className="p-5 app-card">
+            <div className="flex items-center justify-between mb-2" style={{ color: 'var(--text-muted)' }}>
               <span className="text-xs font-semibold uppercase tracking-wider">Quizzes Completed</span>
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
+              <CheckCircle className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-3xl font-bold text-white">{analytics?.quizzesAttempted ?? 0}</div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-3xl font-bold" style={{ color: 'var(--text-main)' }}>{analytics?.quizzesAttempted ?? 0}</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               {hasData ? 'Verified evaluation records' : 'No quiz attempts recorded'}
             </div>
           </div>
 
-          <div className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="flex items-center justify-between text-gray-400 mb-2">
+          <div className="p-5 app-card">
+            <div className="flex items-center justify-between mb-2" style={{ color: 'var(--text-muted)' }}>
               <span className="text-xs font-semibold uppercase tracking-wider">Overall Accuracy</span>
-              <Award className="w-4 h-4 text-indigo-400" />
+              <Award className="w-4 h-4 text-indigo-500" />
             </div>
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold" style={{ color: 'var(--text-main)' }}>
               {hasData ? `${analytics.averageScore}%` : 'N/A'}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               {hasData ? 'Average score percentage' : 'Complete a quiz to calculate'}
             </div>
           </div>
 
-          <div className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="flex items-center justify-between text-gray-400 mb-2">
+          <div className="p-5 app-card">
+            <div className="flex items-center justify-between mb-2" style={{ color: 'var(--text-muted)' }}>
               <span className="text-xs font-semibold uppercase tracking-wider">Weak Topics</span>
-              <AlertCircle className="w-4 h-4 text-amber-400" />
+              <AlertCircle className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold" style={{ color: 'var(--text-main)' }}>
               {analytics?.weakTopics?.length ?? 0}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               {hasData ? 'Topics below 70% accuracy' : 'No performance data'}
             </div>
           </div>
@@ -108,9 +108,9 @@ export default function ProgressPage() {
         {/* Topic-Level Performance Breakdown (Only when real data exists) */}
         {hasData ? (
           <div className="space-y-6">
-            <div className="p-6 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-indigo-400" />
+            <div className="p-6 app-card space-y-4">
+              <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                <BarChart2 className="w-5 h-5 text-indigo-500" />
                 <span>Topic Mastery Breakdown</span>
               </h2>
 
@@ -118,19 +118,19 @@ export default function ProgressPage() {
                 {analytics.topicsPerformance.map((topic, idx) => (
                   <div key={idx} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-white">
-                        {topic.topic} <span className="text-gray-400 font-normal">({topic.courseCode})</span>
+                      <span className="font-semibold" style={{ color: 'var(--text-main)' }}>
+                        {topic.topic} <span className="font-normal" style={{ color: 'var(--text-muted)' }}>({topic.courseCode})</span>
                       </span>
                       <span
                         className={`font-bold ${
-                          topic.accuracy >= 70 ? 'text-emerald-400' : 'text-amber-400'
+                          topic.accuracy >= 70 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                         }`}
                       >
                         {topic.accuracy}% ({topic.correctQuestions}/{topic.totalQuestions} questions)
                       </span>
                     </div>
 
-                    <div className="w-full bg-[#11192d] h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border-color)' }}>
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           topic.accuracy >= 70 ? 'bg-emerald-500' : 'bg-amber-500'
@@ -144,9 +144,15 @@ export default function ProgressPage() {
             </div>
 
             {/* Actionable Revision Recommendations */}
-            <div className="p-6 rounded-xl bg-[#0d1425] border border-amber-900/30 space-y-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+            <div
+              className="p-6 rounded-xl border space-y-4"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+              }}
+            >
+              <h2 className="text-base font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <Sparkles className="w-5 h-5" />
                 <span>Targeted Revision Recommendations</span>
               </h2>
 
@@ -155,17 +161,22 @@ export default function ProgressPage() {
                   {analytics.recommendations.map((rec, i) => (
                     <div
                       key={i}
-                      className="p-4 rounded-xl bg-[#0f172a] border border-amber-500/20 text-xs space-y-2"
+                      className="p-4 rounded-xl border text-xs space-y-2"
+                      style={{
+                        backgroundColor: 'var(--bg-subtle)',
+                        borderColor: 'var(--border-color)',
+                      }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-amber-300">{rec.topic}</span>
-                        <span className="text-gray-400">{rec.courseCode}</span>
+                        <span className="font-semibold text-amber-600 dark:text-amber-300">{rec.topic}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{rec.courseCode}</span>
                       </div>
-                      <p className="text-gray-300 leading-relaxed">{rec.advice}</p>
+                      <p className="leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{rec.advice}</p>
                       <div className="pt-1">
                         <Link
                           href="/dashboard/tutor"
-                          className="inline-flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 font-medium"
+                          className="inline-flex items-center gap-1.5 font-medium hover:underline"
+                          style={{ color: 'var(--primary)' }}
                         >
                           <span>Ask AI Tutor to clarify this topic</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -175,16 +186,16 @@ export default function ProgressPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   Congratulations! All evaluated topics meet or exceed the 70% proficiency benchmark.
                 </p>
               )}
             </div>
 
             {/* Quiz History */}
-            <div className="p-6 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Clock className="w-5 h-5 text-cyan-400" />
+            <div className="p-6 app-card space-y-4">
+              <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                <Clock className="w-5 h-5 text-cyan-500" />
                 <span>Historical Attempts</span>
               </h2>
 
@@ -192,20 +203,24 @@ export default function ProgressPage() {
                 {analytics.recentActivity.map((act) => (
                   <div
                     key={act.id}
-                    className="p-3.5 rounded-xl bg-[#10182b] border border-[#1a253c] flex items-center justify-between text-xs"
+                    className="p-3.5 rounded-xl border flex items-center justify-between text-xs"
+                    style={{
+                      backgroundColor: 'var(--bg-subtle)',
+                      borderColor: 'var(--border-color)',
+                    }}
                   >
                     <div>
-                      <div className="font-semibold text-white">{act.title}</div>
-                      <div className="text-gray-400 text-[11px] mt-0.5">
+                      <div className="font-semibold" style={{ color: 'var(--text-main)' }}>{act.title}</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                         {act.courseCode} · Topic: {act.topic}
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="font-bold text-emerald-400">
+                      <div className="font-bold text-emerald-600 dark:text-emerald-400">
                         {act.score}/{act.maxScore} ({act.percentage}%)
                       </div>
-                      <div className="text-gray-400 text-[11px] mt-0.5">
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                         {new Date(act.createdAt).toLocaleDateString()}
                       </div>
                     </div>
@@ -216,20 +231,20 @@ export default function ProgressPage() {
           </div>
         ) : (
           /* Polished Empty State when database has no quiz attempts yet */
-          <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-2xl space-y-4">
-            <div className="w-16 h-16 rounded-full bg-indigo-950/60 border border-indigo-800/40 flex items-center justify-center mx-auto text-indigo-400">
+          <div className="p-12 text-center app-card space-y-4">
+            <div className="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mx-auto text-indigo-500">
               <BarChart2 className="w-8 h-8" />
             </div>
             <div className="max-w-md mx-auto">
-              <h3 className="text-lg font-bold text-white">No Evaluation Data Yet</h3>
-              <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+              <h3 className="text-lg font-bold" style={{ color: 'var(--text-main)' }}>No Evaluation Data Yet</h3>
+              <p className="text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                 EduFlow tracks real academic performance without fabricated statistics. Once you take practice quizzes on your course material, your topic-level mastery and personalized revision guidance will automatically populate here.
               </p>
             </div>
             <div className="pt-2">
               <Link
                 href="/dashboard/quizzes"
-                className="inline-block px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-indigo-600/20"
+                className="btn-primary text-xs"
               >
                 Attempt Your First Practice Quiz
               </Link>

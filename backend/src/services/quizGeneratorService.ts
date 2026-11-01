@@ -1,7 +1,11 @@
 import { prisma } from '../config/db.js';
 import { checkOllamaStatus, queryOllama } from './ollamaService.js';
 import { notifyEnrolledStudents } from './notificationService.js';
+import { validateQuestionQuality } from './questionValidator.js';
 import { NotificationType } from '@prisma/client';
+
+export type QuestionType = 'CONCEPTUAL' | 'APPLICATION' | 'ANALYTICAL' | 'SCENARIO' | 'KNOWLEDGE';
+export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface GeneratedQuestion {
   questionText: string;
@@ -9,288 +13,367 @@ export interface GeneratedQuestion {
   correctIndex: number;
   explanation: string;
   pageReference: number | null;
+  questionType?: QuestionType;
+  difficulty?: DifficultyLevel;
+}
+
+interface ParsedConcept {
+  term: string;
+  definition: string;
+  category: 'conceptual' | 'operational' | 'analytical' | 'knowledge' | 'scenario';
+  page: number;
+}
+
+const BLACKLISTED_TERMS = new Set([
+  'description', 'fr1', 'fr2', 'fr3', 'step', 'steps', 'step1', 'step2', 'step3', 'step4',
+  'note', 'notes', 'figure', 'part', 'parts', 'participants', 'usually', 'things',
+  'while there', 'while', 'there', 'if', 'and', 'the team', 'you make a list',
+  'you size things up', 'you set some priorities', 'you start executing', 'the pilot',
+  'in this case the user', 'nction a system provides an end user', 'ack if the customer \r\nrepresentative',
+  'ack if the customer representative', 'credit', 'university', 'bennett', 'times',
+  'www', 'com', 'http', 'https', 'page', 'slide', 'chapter', 'author', 'lecture',
+  'table', 'chart', 'summary', 'overview', 'fama in cs', 'al', 'tu', 'thinks', 'fi',
+  'single person', 'responsible for product', 'responsible for declaring', 'single'
+]);
+
+/**
+ * Remove trailing dangling words to ensure complete, readable sentences
+ */
+function cleanSentenceEnding(text: string): string {
+  let cleaned = text.replace(/^[●■•\-\*–—\s]+/, '').trim();
+  // Strip trailing dangling prepositions and conjunctions
+  const danglingRegex = /\s+(?:that|which|with|and|or|the|a|an|to|for|in|on|at|from|by|as|can be|is|are|of|so|its|their)$/i;
+  while (danglingRegex.test(cleaned)) {
+    cleaned = cleaned.replace(danglingRegex, '').trim();
+  }
+  // Strip trailing isolated punctuation
+  cleaned = cleaned.replace(/[,;:\-–—]\s*$/, '').trim();
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return cleaned;
 }
 
 /**
- * Clean and normalize text lines for heuristic question extraction
+ * Clean lines, stripping bullets, URLs, page headers, and noise
  */
 function cleanChunkLines(content: string): string[] {
   return content
     .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length >= 15 && !l.match(/^[=\-_~*#\s]+$/) && !l.match(/^[0-9\s.,;:]+$/));
+    .map((l) => l.replace(/^[●■•\-\*–—\s]+/, '').trim())
+    .filter((l) =>
+      l.length >= 15 &&
+      !l.match(/^[=\-_~*#\s]+$/) &&
+      !l.match(/^[0-9\s.,;:]+$/) &&
+      !l.match(/^https?:\/\//i) &&
+      !l.match(/^www\./i) &&
+      !l.toLowerCase().includes('times of india') &&
+      !l.toLowerCase().includes('bennett university')
+    );
 }
 
 /**
- * Build grounded questions directly from extracted document chunks
+ * Extract clean, high-signal semantic concepts from material chunks
+ * STRICT ISOLATION: Parses exclusively from the supplied material's chunks.
  */
-export function buildGroundedQuestionsFromChunks(
+export function extractConceptsFromMaterial(
   materialTitle: string,
-  chunks: Array<{ chunkIndex: number; pageNumber: number; content: string }>,
-  targetCount: number = 10
-): GeneratedQuestion[] {
-  const questions: GeneratedQuestion[] = [];
-  if (!chunks || chunks.length === 0) return questions;
+  chunks: Array<{ chunkIndex: number; pageNumber: number; content: string }>
+): ParsedConcept[] {
+  const concepts: ParsedConcept[] = [];
+  const seenTerms = new Set<string>();
+  const cleanTitle = materialTitle.replace(/\.[^/.]+$/, '').trim();
 
-  const titleClean = materialTitle.replace(/\.[^/.]+$/, '').trim();
-  const step = Math.max(1, Math.floor(chunks.length / targetCount));
-
-  // Domain-specific tailored templates when keywords are detected in chunks
-  for (let i = 0; i < chunks.length && questions.length < targetCount; i += step) {
-    const chunk = chunks[i];
-    const pageNum = chunk.pageNumber || 1;
+  for (const chunk of chunks) {
+    const page = chunk.pageNumber || 1;
     const text = chunk.content;
-    const lines = cleanChunkLines(text);
 
-    // Heuristic 1: SQL specific facts
-    if (text.includes('UNION') && text.includes('INTERSECT') && !questions.some(q => q.questionText.includes('UNION'))) {
-      questions.push({
-        questionText: `According to Page ${pageNum} of ${titleClean}, which set operator combines results from two queries and automatically removes duplicate rows?`,
-        options: ['UNION', 'UNION ALL', 'INTERSECT', 'EXCEPT / MINUS'],
-        correctIndex: 0,
-        explanation: `On Page ${pageNum}, the notes clarify that UNION removes duplicate rows from both queries, whereas UNION ALL includes duplicates.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
+    // 1. Sentence-level definition parsing: "X is (a/an/the) Y that/which Z"
+    const fullSentences = text
+      .replace(/\r\n/g, ' ')
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .split(/(?<=[.?!])\s+/);
 
-    if (text.includes('TRUNCATE') && !questions.some(q => q.questionText.includes('TRUNCATE'))) {
-      questions.push({
-        questionText: `In the database DDL operations covered on Page ${pageNum}, what is the key behavior of the TRUNCATE command?`,
-        options: [
-          'It removes all rows from a table while keeping the table structure intact',
-          'It deletes the table schema permanently along with all dependent views',
-          'It drops specific foreign key constraints without modifying table data',
-          'It creates a temporary backup of all rows before removing the table',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} explicitly specifies: "TRUNCATE is used to remove all rows from a table, but keeps the table structure intact."`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
+    for (const sent of fullSentences) {
+      const match = sent.match(/(?:what is\s+)?([A-Z][A-Za-z0-9_\s()\/]{2,35})\s+(?:is|refers to|is defined as|means|measures the)\s+(?:a|an|the)?\s*([^.?!;]{25,250})/i);
+      if (match) {
+        let term = match[1].replace(/^[●■•\-\*–—\s]+/, '').trim();
+        let rawDef = match[2].trim();
 
-    if ((text.includes('Structured Query Language') || text.includes('What is SQL')) && !questions.some(q => q.questionText.includes('standard language'))) {
-      questions.push({
-        questionText: `Based on Page ${pageNum} of ${titleClean}, what is the core purpose of SQL (Structured Query Language)?`,
-        options: [
-          'The standard language used to communicate with relational databases to store, retrieve, update, and manage data',
-          'A client-side scripting language executed only within web browsers',
-          'A proprietary network communication protocol for distributed file storage',
-          'A compiled programming language used exclusively for machine learning pipelines',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} states: "SQL (Structured Query Language) is the standard language used to communicate with relational databases to store, retrieve, update and manage data."`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if ((text.includes('COALESCE') || text.includes('IFNULL')) && !questions.some(q => q.questionText.includes('COALESCE'))) {
-      questions.push({
-        questionText: `According to the conditional logic section on Page ${pageNum}, what does the COALESCE function do?`,
-        options: [
-          'Evaluates a list of expressions and returns the first non-NULL value found',
-          'Replaces all NULL values with zeroes regardless of data type',
-          'Converts all string columns to uppercase if they are not null',
-          'Drops rows from the result set whenever any column is NULL',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} demonstrates: COALESCE(Email, Phone, 'No Contact') returns the first non-null contact value.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if (text.includes('ALTER TABLE') && !questions.some(q => q.questionText.includes('ALTER TABLE'))) {
-      questions.push({
-        questionText: `On Page ${pageNum}, which statement is used to rename, drop, or modify columns in an existing table?`,
-        options: [
-          'ALTER TABLE',
-          'UPDATE TABLE',
-          'MODIFY SCHEMA',
-          'CHANGE TABLE',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} details: ALTER TABLE table_name RENAME COLUMN / DROP COLUMN / ADD COLUMN.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if (text.includes('WHERE Email IS NULL') || text.includes('IS NULL')) {
-      if (!questions.some(q => q.questionText.includes('IS NULL'))) {
-        questions.push({
-          questionText: `According to Page ${pageNum} of ${titleClean}, what is the correct syntax to filter rows where a column has missing or null data?`,
-          options: [
-            'WHERE column_name IS NULL',
-            'WHERE column_name = NULL',
-            'WHERE column_name == NIL',
-            'WHERE column_name IS EMPTY',
-          ],
-          correctIndex: 0,
-          explanation: `Page ${pageNum} emphasizes: SQL requires 'WHERE column IS NULL' rather than '= NULL'.`,
-          pageReference: pageNum,
-        });
-        continue;
+        if (
+          term.length >= 3 &&
+          term.length <= 35 &&
+          term.split(/\s+/).length <= 4 &&
+          !BLACKLISTED_TERMS.has(term.toLowerCase()) &&
+          !/^(?:if|when|where|then|also|correct|incorrect|true|false|yes|no|as|the array|the idea|the data|lists until|during|once|after|before|such|some|each|all|any)\b/i.test(term) &&
+          !term.toLowerCase().startsWith('this') &&
+          !term.toLowerCase().startsWith('it') &&
+          !term.toLowerCase().startsWith('here') &&
+          !term.toLowerCase().startsWith('what') &&
+          !term.toLowerCase().startsWith('why') &&
+          !term.toLowerCase().startsWith('how')
+        ) {
+          const cleanDef = cleanSentenceEnding(rawDef);
+          if (cleanDef.length >= 25) {
+            const key = term.toLowerCase();
+            if (!seenTerms.has(key)) {
+              seenTerms.add(key);
+              concepts.push({
+                term,
+                definition: cleanDef,
+                category: 'conceptual',
+                page,
+              });
+            }
+          }
+        }
       }
     }
 
-    // Heuristic 2: CSS specific facts
-    if ((text.includes('Creating owt fest C55') || text.includes('fest C55') || text.includes('first CSS')) && !questions.some(q => q.questionText.includes('Chapter 1'))) {
-      questions.push({
-        questionText: `In Chapter 1 of the ${titleClean} notes (Page ${pageNum}), what foundational exercise is introduced for beginners?`,
-        options: [
-          'Creating our first CSS website and linking stylesheets to HTML elements',
-          'Configuring a Webpack bundler for React single-page applications',
-          'Writing database migration scripts using ORM tools',
-          'Setting up serverless backend functions for authentication',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} introduces Chapter 1: "Creating our first CSS website" and adding CSS styling to HTML.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
+    // 2. Labeled items and operations: "push() - insert element", "ILF : Internal Logical Files"
+    const lines = text.split(/\r?\n/).map((l) => l.replace(/^[●■•\-\*–—\s]+/, '').trim());
+    for (const line of lines) {
+      // Operation definition
+      const opMatch = line.match(/^([A-Za-z0-9_()]{3,28})\s+[−\-–—:]\s*(.+)$/);
+      if (opMatch) {
+        const term = opMatch[1].trim();
+        const rawDef = opMatch[2].trim();
+        if (
+          term.length >= 3 &&
+          !BLACKLISTED_TERMS.has(term.toLowerCase()) &&
+          !term.toLowerCase().startsWith('step') &&
+          !term.toLowerCase().startsWith('figure') &&
+          !term.toLowerCase().startsWith('note') &&
+          !term.toLowerCase().startsWith('fr')
+        ) {
+          const cleanDef = cleanSentenceEnding(rawDef);
+          if (cleanDef.length >= 18) {
+            const key = term.toLowerCase();
+            if (!seenTerms.has(key)) {
+              seenTerms.add(key);
+              concepts.push({
+                term,
+                definition: cleanDef,
+                category: 'operational',
+                page,
+              });
+            }
+          }
+        }
+      }
 
-    if ((text.includes('border') || text.includes('hordoy') || text.includes('Solid')) && !questions.some(q => q.questionText.includes('border'))) {
-      questions.push({
-        questionText: `According to Page ${pageNum} of ${titleClean}, what is the CSS shorthand syntax to configure border width, style, and color simultaneously?`,
-        options: [
-          'border: 2px solid red;',
-          'border-style: solid 2px red;',
-          'outline: 2px-solid-red;',
-          'box-border: red 2px solid;',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} notes shorthand: "border: 2px solid red;" as the concise combination of border-width, border-style, and color.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
+      // Role responsibilities: "Product Owner is responsible for...", "Scrum Master is responsible for..."
+      const respMatch = line.match(/([A-Z][A-Za-z\s]{3,30})\s+(?:is\s+)?responsible for\s+([^.?!;]{20,180})/i);
+      if (respMatch) {
+        const term = respMatch[1].trim();
+        const rawDef = 'Responsible for ' + respMatch[2].trim();
+        if (
+          !BLACKLISTED_TERMS.has(term.toLowerCase()) &&
+          !term.toLowerCase().startsWith('single') &&
+          !term.toLowerCase().startsWith('the team')
+        ) {
+          const cleanDef = cleanSentenceEnding(rawDef);
+          const key = term.toLowerCase();
+          if (!seenTerms.has(key)) {
+            seenTerms.add(key);
+            concepts.push({
+              term,
+              definition: cleanDef,
+              category: 'operational',
+              page,
+            });
+          }
+        }
+      }
 
-    if ((text.includes('box') || text.includes('Box') || text.includes('margin') || text.includes('padding')) && !questions.some(q => q.questionText.includes('Box'))) {
-      questions.push({
-        questionText: `In the CSS layout principles on Page ${pageNum}, what concept defines the spacing between content, padding, borders, and margins?`,
-        options: [
-          'The CSS Box Model',
-          'The DOM Inheritance Tree',
-          'The Event Bubbling Phase',
-          'The Viewport Meta Tag',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} covers element box dimensions, margins, padding, and border width calculations.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if ((text.includes('class') || text.includes('Class') || text.includes('element')) && !questions.some(q => q.questionText.includes('class selector'))) {
-      questions.push({
-        questionText: `Based on Page ${pageNum} of ${titleClean}, how do you apply a reusable class styling rule to an HTML element?`,
-        options: [
-          'Add class="name" to the HTML element and target it with .name in CSS',
-          'Add id="name" to the HTML element and target it with %name in CSS',
-          'Add style-group="name" to the HTML element and target it with @name',
-          'Add role="name" to the HTML element and target it with /name in CSS',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} explains HTML class attributes and targeting them using dot-notation class selectors.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if ((text.includes('z-index') || text.includes('z index') || text.includes('inde')) && !questions.some(q => q.questionText.includes('z-index'))) {
-      questions.push({
-        questionText: `According to Page ${pageNum} of ${titleClean}, which CSS property controls the vertical stacking order of positioned elements?`,
-        options: [
-          'z-index',
-          'elevation-layer',
-          'stack-order',
-          'depth-level',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} notes that z-index specifies the stacking order along the z-axis for positioned elements.`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    // Heuristic 3: Job Description / Internship facts
-    if (text.includes('20,000') || text.includes('stipend')) {
-      questions.push({
-        questionText: `According to Page ${pageNum} of ${titleClean}, what monthly stipend is provided during the internship?`,
-        options: [
-          'INR 20,000 monthly stipend',
-          'INR 10,000 monthly stipend',
-          'INR 35,000 monthly stipend',
-          'Unpaid internship with completion certificate only',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} states: "INR 20,000 monthly stipend" and "Dedicated mentor and weekly feedback."`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    if (text.includes('PPO') || text.includes('12 LPA')) {
-      questions.push({
-        questionText: `On Page ${pageNum} of ${titleClean}, what post-internship pre-placement offer (PPO) package is mentioned for top performers?`,
-        options: [
-          'PPO at INR 12 LPA CTC for top performers',
-          'PPO at INR 6 LPA CTC for top performers',
-          'PPO at INR 24 LPA CTC for top performers',
-          'No pre-placement offers are provided',
-        ],
-        correctIndex: 0,
-        explanation: `Page ${pageNum} explicitly specifies: "PPO at INR 12 LPA CTC for top performers."`,
-        pageReference: pageNum,
-      });
-      continue;
-    }
-
-    // Heuristic 4: General sentence-grounded question extraction from real lines
-    const meaningfulLine = lines.find(
-      (l) => l.length >= 25 && l.length <= 160 && !l.startsWith('http') && !l.startsWith('//')
-    );
-
-    if (meaningfulLine) {
-      const promptSnippet = meaningfulLine.replace(/\s+/g, ' ').trim();
-      questions.push({
-        questionText: `Regarding the content on Page ${pageNum} of "${titleClean}", which statement directly reflects the material: "${promptSnippet.slice(0, 90)}..."?`,
-        options: [
-          `It outlines verified specifications and core principles presented in "${titleClean}" on Page ${pageNum}`,
-          `It describes a deprecated legacy standard that has been phased out`,
-          `It refers to an unrelated external system not included in this course curriculum`,
-          `It is an optional third-party plug-in disabled by default`,
-        ],
-        correctIndex: 0,
-        explanation: `Directly supported by lecture material on Page ${pageNum}: "${promptSnippet.slice(0, 140)}"`,
-        pageReference: pageNum,
-      });
+      // Key distinction: "Difference between X and Y"
+      const diffMatch = line.match(/(?:difference between|comparison between)\s+([A-Za-z0-9\s]{3,25})\s+(?:and|&)\s+([A-Za-z0-9\s]{3,25})/i);
+      if (diffMatch) {
+        const termA = diffMatch[1].trim();
+        const termB = diffMatch[2].trim();
+        const rawDef = cleanSentenceEnding(line);
+        if (rawDef.length >= 25) {
+          const term = `${termA} vs ${termB}`;
+          const key = term.toLowerCase();
+          if (!seenTerms.has(key)) {
+            seenTerms.add(key);
+            concepts.push({
+              term,
+              definition: rawDef,
+              category: 'analytical',
+              page,
+            });
+          }
+        }
+      }
     }
   }
 
-  // Shuffle options for each question so correctIndex is distributed across 0, 1, 2, 3
-  const finalQuestions = questions.slice(0, targetCount).map((q, idx) => {
-    const desiredIndex = idx % 4; // Distribute answer keys evenly across A, B, C, D
-    const options = [...q.options];
-    const correctVal = options[q.correctIndex];
-    options.splice(q.correctIndex, 1);
-    options.splice(desiredIndex, 0, correctVal);
-    return {
-      ...q,
-      options,
-      correctIndex: desiredIndex,
-    };
-  });
-
-  return finalQuestions;
+  return concepts;
 }
 
 /**
- * Generate quiz questions for a material using Ollama or grounded fallback
+ * Generate diverse, academically rigorous MCQs grounded strictly in the material's extracted concepts
+ */
+export function buildAcademicQuestionsFromConcepts(
+  materialTitle: string,
+  concepts: ParsedConcept[],
+  chunks: Array<{ chunkIndex: number; pageNumber: number; content: string }>,
+  targetCount: number = 10
+): GeneratedQuestion[] {
+  const cleanTitle = materialTitle.replace(/\.[^/.]+$/, '').trim();
+  const questions: GeneratedQuestion[] = [];
+
+  // Filter out noisy terms
+  const validConcepts = concepts.filter(
+    (c) =>
+      c.term.length >= 3 &&
+      !BLACKLISTED_TERMS.has(c.term.toLowerCase()) &&
+      c.definition.length >= 20
+  );
+
+  // Pool of distinct definitions from this material to serve as high-plausibility distractors
+  const defPool = validConcepts.map((c) => c.definition);
+
+  // Helper to get 3 unique distractors strictly from the same material
+  const getDistractors = (correctDef: string, count: number = 3): string[] => {
+    const distractors: string[] = [];
+    const shuffled = [...defPool].filter((d) => d !== correctDef).sort(() => 0.5 - Math.random());
+
+    for (const d of shuffled) {
+      if (distractors.length < count && !distractors.includes(d)) {
+        distractors.push(d);
+      }
+    }
+
+    // Synthesize domain-aligned educational distractors if needed
+    let counter = 1;
+    while (distractors.length < count) {
+      if (counter === 1) {
+        distractors.push(`An alternate methodology that executes all operations in a single static batch without iterative verification.`);
+      } else if (counter === 2) {
+        distractors.push(`A secondary mechanism that modifies underlying structures without preserving established relative constraints.`);
+      } else {
+        distractors.push(`A centralized protocol restricted to external auxiliary memory buffers.`);
+      }
+      counter++;
+    }
+
+    return distractors.slice(0, count);
+  };
+
+  const typesDistribution: QuestionType[] = [
+    'CONCEPTUAL',
+    'APPLICATION',
+    'ANALYTICAL',
+    'KNOWLEDGE',
+    'SCENARIO',
+  ];
+
+  const difficultyLevels: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
+
+  // 1. Generate questions for each extracted concept
+  for (let i = 0; i < validConcepts.length && questions.length < targetCount; i++) {
+    const concept = validConcepts[i];
+    const qType = typesDistribution[i % typesDistribution.length];
+    const difficulty = difficultyLevels[i % difficultyLevels.length];
+
+    let questionText = '';
+    let correctOption = concept.definition;
+    let explanation = '';
+
+    if (qType === 'CONCEPTUAL') {
+      questionText = `In the study of ${cleanTitle}, what is the foundational definition and primary role of ${concept.term}?`;
+      explanation = `In ${cleanTitle}, ${concept.term} is defined as: "${concept.definition}". This accurately reflects the core academic principle.`;
+    } else if (qType === 'APPLICATION') {
+      questionText = `When implementing ${concept.term} in practice, which of the following best describes its operational behavior?`;
+      explanation = `The operational function of ${concept.term} involves: ${concept.definition}.`;
+    } else if (qType === 'ANALYTICAL') {
+      questionText = `Which of the following statements provides the most accurate analysis of ${concept.term}?`;
+      explanation = `Detailed analysis of ${cleanTitle} demonstrates that ${concept.term} functions as: ${concept.definition}.`;
+    } else if (qType === 'SCENARIO') {
+      questionText = `Consider a system or engineering workflow governed by ${cleanTitle}. How should ${concept.term} be addressed?`;
+      explanation = `According to the principles of ${cleanTitle}, addressing ${concept.term} requires: ${concept.definition}.`;
+    } else {
+      // KNOWLEDGE
+      questionText = `Which key principle or specification accurately corresponds to ${concept.term} in ${cleanTitle}?`;
+      explanation = `Course material establishes that ${concept.term} corresponds to: "${concept.definition}".`;
+    }
+
+    // Assemble options and shuffle
+    const distractors = getDistractors(correctOption, 3);
+    const rawOptions = [correctOption, ...distractors];
+
+    // Distribute correct index evenly across 0, 1, 2, 3
+    const desiredIndex = questions.length % 4;
+    const shuffledOptions = [...rawOptions];
+    shuffledOptions.splice(0, 1); // Remove correct
+    shuffledOptions.splice(desiredIndex, 0, correctOption); // Insert at desiredIndex
+
+    const candidateQuestion: GeneratedQuestion = {
+      questionText,
+      options: shuffledOptions,
+      correctIndex: desiredIndex,
+      explanation,
+      pageReference: concept.page,
+      questionType: qType,
+      difficulty,
+    };
+
+    const validation = validateQuestionQuality(candidateQuestion as any, cleanTitle);
+    if (validation.valid) {
+      questions.push(candidateQuestion);
+    }
+  }
+
+  // 2. If additional questions are needed to reach targetCount, formulate from verified paragraph statements
+  if (questions.length < targetCount && chunks.length > 0) {
+    const step = Math.max(1, Math.floor(chunks.length / (targetCount - questions.length)));
+    for (let cIdx = 0; cIdx < chunks.length && questions.length < targetCount; cIdx += step) {
+      const chunk = chunks[cIdx];
+      const lines = cleanChunkLines(chunk.content);
+      const meaningfulLine = lines.find((l) => l.length >= 45 && l.length <= 150 && !l.endsWith(':') && !BLACKLISTED_TERMS.has(l.toLowerCase()));
+
+      if (meaningfulLine) {
+        const correctText = cleanSentenceEnding(meaningfulLine);
+        const qType = typesDistribution[questions.length % typesDistribution.length];
+        const difficulty = difficultyLevels[questions.length % difficultyLevels.length];
+
+        const questionText = `Which of the following principles reflects a verified concept presented in ${cleanTitle}?`;
+        const distractors = [
+          `It mandates that all testing and integration occur exclusively in a single phase at the conclusion of the life cycle.`,
+          `It strictly prohibits incremental customer feedback or mid-course adjustments.`,
+          `It replaces data structures with unverified temporary file caches.`,
+        ];
+
+        const desiredIndex = questions.length % 4;
+        const shuffledOptions = [...distractors];
+        shuffledOptions.splice(desiredIndex, 0, correctText);
+
+        const candidateQuestion: GeneratedQuestion = {
+          questionText,
+          options: shuffledOptions,
+          correctIndex: desiredIndex,
+          explanation: `The lecture material confirms: "${correctText}". The alternative options represent contradictory or unverified practices.`,
+          pageReference: chunk.pageNumber || 1,
+          questionType: qType,
+          difficulty,
+        };
+
+        const validation = validateQuestionQuality(candidateQuestion as any, cleanTitle);
+        if (validation.valid) {
+          questions.push(candidateQuestion);
+        }
+      }
+    }
+  }
+
+  return questions;
+}
+
+/**
+ * Generate quiz questions for a material using Ollama AI or the Grounded Academic Synthesis Engine
  */
 export async function generateQuestionsForMaterial(
   materialId: string,
@@ -314,22 +397,41 @@ export async function generateQuestionsForMaterial(
     throw new Error('Material has not completed text extraction or contains no readable text.');
   }
 
+  // Check if content is sufficient
+  const totalWords = material.chunks.reduce((acc, c) => acc + c.content.split(/\s+/).length, 0);
+  if (material.chunks.length < 1 || totalWords < 40) {
+    throw new Error(
+      `Insufficient readable content in material "${material.title}" to generate a reliable academic quiz. Please verify that the uploaded document contains readable lecture text.`
+    );
+  }
+
   const targetCount = Math.max(3, Math.min(requestedCount, 15));
   let questions: GeneratedQuestion[] = [];
 
-  // 1. Try Ollama AI generation if online
+  // 1. Try Ollama AI generation if available
   const ollamaStatus = await checkOllamaStatus();
   if (ollamaStatus.available) {
-    console.log(`[QuizGenerator] Ollama is available. Generating ${targetCount} questions with ${ollamaStatus.model}...`);
+    console.log(`[QuizGenerator] Ollama is available. Generating questions with ${ollamaStatus.model}...`);
     try {
       const sampledChunks = material.chunks
         .slice(0, Math.min(12, material.chunks.length))
-        .map((c) => `[Page ${c.pageNumber}] ${c.content.slice(0, 450)}`)
+        .map((c) => c.content.slice(0, 500))
         .join('\n\n')
-        .slice(0, 4000);
+        .slice(0, 4500);
 
-      const sysPrompt = `You are a university professor creating an exam for "${material.title}". Based ONLY on the provided lecture excerpts, create exactly ${targetCount} multiple-choice questions. Return ONLY a JSON array of objects with keys: "questionText" (string), "options" (array of exactly 4 strings), "correctIndex" (integer 0-3), "explanation" (string), and "pageReference" (number). Do not wrap in markdown quotes or preamble.`;
-      const prompt = `Course Material:\n${sampledChunks}\n\nGenerate exactly ${targetCount} multiple-choice questions.`;
+      const sysPrompt = `You are a university professor creating an exam for the course topic "${material.title}".
+Based ONLY on the provided verified lecture excerpts, create exactly ${targetCount} high-quality academic multiple-choice questions.
+
+CRITICAL RULES:
+1. Every question must be a complete, grammatically sound sentence testing genuine understanding.
+2. NEVER include phrases like "According to Page X", "On Page Y", or source references.
+3. Avoid copying raw fragments or incomplete clauses.
+4. Provide exactly 4 distinct, plausible options (one correct, three plausible distractors). Never use "All of the above" or "None of the above".
+5. Include questionType ("CONCEPTUAL", "APPLICATION", "ANALYTICAL", "SCENARIO", or "KNOWLEDGE") and difficulty ("EASY", "MEDIUM", or "HARD").
+6. Provide a concise explanation grounded in the text.
+7. Return ONLY a valid JSON array of objects with keys: "questionText", "options" (array of exactly 4 strings), "correctIndex" (0-3), "explanation", "questionType", "difficulty". Do not include markdown codeblocks or preamble.`;
+
+      const prompt = `Course Material Topic: "${material.title}"\n\nVerified Lecture Content:\n${sampledChunks}\n\nGenerate exactly ${targetCount} academic MCQs:`;
 
       const aiResponse = await queryOllama(prompt, sysPrompt);
       if (aiResponse) {
@@ -337,42 +439,45 @@ export async function generateQuestionsForMaterial(
         const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(parsed) && parsed.length >= 3) {
+          if (Array.isArray(parsed)) {
             for (const item of parsed) {
-              if (
-                typeof item.questionText === 'string' &&
-                item.questionText.trim().length > 15 &&
-                Array.isArray(item.options) &&
-                item.options.length === 4 &&
-                typeof item.correctIndex === 'number' &&
-                item.correctIndex >= 0 &&
-                item.correctIndex <= 3
-              ) {
-                questions.push({
-                  questionText: item.questionText.trim(),
-                  options: item.options.map((o: any) => String(o).trim()),
-                  correctIndex: item.correctIndex,
-                  explanation: typeof item.explanation === 'string' ? item.explanation.trim() : `Verified by Page ${item.pageReference || 1}.`,
-                  pageReference: typeof item.pageReference === 'number' ? item.pageReference : (material.chunks[0]?.pageNumber || 1),
-                });
+              const candidate: GeneratedQuestion = {
+                questionText: String(item.questionText || '').trim(),
+                options: Array.isArray(item.options) ? item.options.map((o: any) => String(o).trim()) : [],
+                correctIndex: Number(item.correctIndex),
+                explanation: String(item.explanation || 'Verified by course lecture material.').trim(),
+                pageReference: null,
+                questionType: (['CONCEPTUAL', 'APPLICATION', 'ANALYTICAL', 'SCENARIO', 'KNOWLEDGE'].includes(item.questionType)
+                  ? item.questionType
+                  : 'CONCEPTUAL') as QuestionType,
+                difficulty: (['EASY', 'MEDIUM', 'HARD'].includes(item.difficulty)
+                  ? item.difficulty
+                  : 'MEDIUM') as DifficultyLevel,
+              };
+
+              // Strict validation
+              const validation = validateQuestionQuality(candidate as any, material.title);
+              if (validation.valid && !questions.some((q) => q.questionText === candidate.questionText)) {
+                questions.push(candidate);
               }
             }
           }
         }
       }
     } catch (ollamaErr: any) {
-      console.warn('[QuizGenerator] Ollama generation encountered an error, using grounded extractor:', ollamaErr.message);
+      console.warn('[QuizGenerator] Ollama query or parsing error, falling back to Academic Synthesis Engine:', ollamaErr.message);
     }
   }
 
-  // 2. If Ollama was offline or returned fewer questions, complete with grounded chunk extractor
+  // 2. If Ollama was offline or returned insufficient questions, complete with Academic Synthesis Engine
   if (questions.length < targetCount) {
-    console.log(`[QuizGenerator] Using content-grounded chunk extractor to generate ${targetCount} questions for "${material.title}"...`);
-    const grounded = buildGroundedQuestionsFromChunks(material.title, material.chunks, targetCount);
-    // Merge without duplicates
-    for (const g of grounded) {
-      if (!questions.some((q) => q.questionText === g.questionText)) {
-        questions.push(g);
+    console.log(`[QuizGenerator] Using Grounded Academic Synthesis Engine to generate questions for "${material.title}"...`);
+    const concepts = extractConceptsFromMaterial(material.title, material.chunks);
+    const synthesized = buildAcademicQuestionsFromConcepts(material.title, concepts, material.chunks, targetCount);
+
+    for (const sq of synthesized) {
+      if (!questions.some((q) => q.questionText === sq.questionText)) {
+        questions.push(sq);
       }
       if (questions.length >= targetCount) break;
     }
@@ -391,6 +496,7 @@ export async function generateQuestionsForMaterial(
 
 /**
  * Queue or execute quiz generation for a specific material
+ * ENFORCES STRICT COURSE & MATERIAL ISOLATION
  */
 export async function queueQuizGenerationForMaterial(
   courseId: string,
@@ -399,7 +505,25 @@ export async function queueQuizGenerationForMaterial(
   force: boolean = false,
   targetQuizId?: string
 ): Promise<{ success: boolean; quizId: string; message: string }> {
-  // Check if a quiz record is targeted or already exists
+  // 1. Verify material exists AND belongs strictly to this course
+  const material = await prisma.material.findUnique({
+    where: { id: materialId },
+    select: { id: true, courseId: true, title: true, status: true },
+  });
+
+  if (!material) {
+    throw new Error('Material not found.');
+  }
+
+  if (material.courseId !== courseId) {
+    throw new Error(`Course isolation mismatch: Material "${material.title}" (${materialId}) belongs to course ${material.courseId}, not ${courseId}.`);
+  }
+
+  if (material.status !== 'READY') {
+    throw new Error(`Material status is '${material.status}'. Quizzes can only be generated for materials in READY status.`);
+  }
+
+  // 2. Check if a quiz record already exists for this exact courseId and materialId
   const existing = targetQuizId
     ? await prisma.quiz.findUnique({
         where: { id: targetQuizId },
@@ -424,19 +548,6 @@ export async function queueQuizGenerationForMaterial(
     };
   }
 
-  const material = await prisma.material.findUnique({
-    where: { id: materialId },
-    select: { id: true, title: true, status: true },
-  });
-
-  if (!material) {
-    throw new Error('Material not found.');
-  }
-
-  if (material.status !== 'READY') {
-    throw new Error(`Material status is '${material.status}'. Quizzes can only be generated for materials in READY status.`);
-  }
-
   const quizTitle = `Practice Quiz: ${material.title}`;
   const quizTopic = material.title;
 
@@ -457,23 +568,25 @@ export async function queueQuizGenerationForMaterial(
     quizRecord = await prisma.quiz.update({
       where: { id: quizRecord.id },
       data: {
+        courseId, // Ensure courseId is always matching
+        materialId, // Ensure materialId is always matching
         status: 'PROCESSING',
         errorMessage: null,
       },
     });
   }
 
-  console.log(`[QuizGenerator] Starting question generation for Quiz ${quizRecord.id} (Material: ${material.title})...`);
+  console.log(`[QuizGenerator] Generating questions for Quiz ${quizRecord.id} (Course: ${courseId}, Material: ${material.title})...`);
 
   try {
     const { questions } = await generateQuestionsForMaterial(materialId, questionCount);
 
-    // Delete existing questions if retrying/updating
+    // Delete previous questions
     await prisma.question.deleteMany({
       where: { quizId: quizRecord.id },
     });
 
-    // Create new questions
+    // Create validated questions with questionType & difficulty
     await prisma.question.createMany({
       data: questions.map((q) => ({
         quizId: quizRecord!.id,
@@ -482,6 +595,8 @@ export async function queueQuizGenerationForMaterial(
         correctIndex: q.correctIndex,
         explanation: q.explanation,
         pageReference: q.pageReference,
+        questionType: q.questionType || 'CONCEPTUAL',
+        difficulty: q.difficulty || 'MEDIUM',
       })),
     });
 
@@ -537,7 +652,6 @@ export async function generateMissingQuizzesForCourse(courseId: string): Promise
   processedCount: number;
   quizzes: any[];
 }> {
-  // Find all READY materials in course
   const materials = await prisma.material.findMany({
     where: {
       courseId,

@@ -25,6 +25,8 @@ import {
   BarChart3,
   GraduationCap,
   User as UserIcon,
+  ClipboardList,
+  Calendar,
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import UserDropdown from './UserDropdown';
@@ -50,6 +52,7 @@ export default function AppLayout({ children }: SidebarProps) {
     { label: 'Students', href: '/dashboard/teacher/students', icon: Users },
     { label: 'Analytics', href: '/dashboard/teacher/analytics', icon: BarChart3 },
     { label: 'Course Materials', href: '/dashboard/teacher/materials', icon: FileText },
+    { label: 'Assignments', href: '/dashboard/teacher/assignments', icon: ClipboardList },
     { label: 'Quiz Results', href: '/dashboard/teacher/quizzes', icon: CheckCircle },
   ];
 
@@ -59,6 +62,8 @@ export default function AppLayout({ children }: SidebarProps) {
     { label: 'AI Tutor', href: '/dashboard/tutor', icon: MessageSquare },
     { label: 'Summaries', href: '/dashboard/summaries', icon: FileText },
     { label: 'Quizzes', href: '/dashboard/quizzes', icon: CheckCircle },
+    { label: 'Assignments', href: '/dashboard/assignments', icon: ClipboardList },
+    { label: 'Timeline', href: '/dashboard/timeline', icon: Calendar },
     { label: 'Progress', href: '/dashboard/progress', icon: TrendingUp },
     { label: 'Recommendations', href: '/dashboard/progress#recommendations', icon: Sparkles },
   ];

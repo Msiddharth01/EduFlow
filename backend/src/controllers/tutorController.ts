@@ -266,10 +266,12 @@ export async function askTutor(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+import { generateDocumentSummary } from '../services/summarizerService.js';
+
 export async function generateSummary(req: AuthenticatedRequest, res: Response) {
   try {
     const courseId = req.params.courseId as string;
-    const { materialId, summaryType = 'detailed' } = req.body; // 'concise' | 'detailed' | 'revision-notes'
+    const { materialId, summaryType = 'detailed' } = req.body;
 
     // Verify access
     const enrollment = await prisma.enrollment.findUnique({
@@ -285,52 +287,22 @@ export async function generateSummary(req: AuthenticatedRequest, res: Response) 
       return res.status(403).json({ error: 'Not enrolled in this course.' });
     }
 
-    const material = await prisma.material.findUnique({
-      where: { id: materialId },
-      include: {
-        chunks: {
-          take: 10,
-          orderBy: { chunkIndex: 'asc' },
-        },
-      },
-    });
-
-    if (!material) {
-      return res.status(404).json({ error: 'Material not found.' });
+    if (!materialId) {
+      return res.status(400).json({ error: 'materialId is required.' });
     }
 
-    if (material.chunks.length === 0) {
-      return res.status(400).json({ error: 'Material is not yet processed or has no text chunks.' });
-    }
-
-    const combinedText = material.chunks.map((c) => c.content).join('\n\n').slice(0, 4000);
-
-    const typePrompts: Record<string, string> = {
-      concise: 'Generate a high-level 3-5 bullet point executive summary.',
-      detailed: 'Generate an in-depth structured breakdown with Key Topics, Explanations, and Takeaways.',
-      'revision-notes': 'Generate quick-revision exam flash notes with definitions, key formulas/rules, and common pitfalls.',
-    };
-
-    const sysPrompt = `You are an academic summarizer for college students. ${typePrompts[summaryType] || typePrompts.detailed}`;
-    const ollamaResponse = await queryOllama(`Document Title: ${material.title}\n\nContent:\n${combinedText}`, sysPrompt);
-
-    let summary = ollamaResponse;
-    if (!summary) {
-      // Clean structured fallback from chunks
-      summary = `### ${summaryType.toUpperCase()} SUMMARY: ${material.title}\n\n` +
-        `**Overview:**\nThis document covers foundational course concepts extracted from **${material.fileName}**.\n\n` +
-        `**Key Excerpts & Principles:**\n` +
-        material.chunks.slice(0, 3).map((c, idx) => `* **Key Section ${idx + 1} (Page ${c.pageNumber}):** ${c.content.slice(0, 180)}...`).join('\n\n') +
-        `\n\n*(Note: Generated via direct textbook chunk index while Ollama is offline)*`;
-    }
+    const result = await generateDocumentSummary(materialId, summaryType);
 
     res.json({
-      summary,
-      materialTitle: material.title,
-      summaryType,
+      summary: result.summaryText,
+      materialTitle: result.materialTitle,
+      summaryType: result.summaryType,
+      sourcePages: result.sourcePages,
+      isCached: result.isCached,
+      generatedAt: result.generatedAt,
     });
   } catch (error: any) {
-    console.error('Generate summary error:', error);
-    res.status(500).json({ error: 'Failed to generate summary.' });
+    console.error('[Summarizer] Generate summary error:', error.message || error);
+    res.status(400).json({ error: error.message || 'Failed to generate summary.' });
   }
 }

@@ -34,20 +34,34 @@ enum NotificationType {
   GENERAL
 }
 
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  RESUBMITTED
+  LATE
+  GRADED
+}
+
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  passwordHash  String
-  name          String
-  role          Role           @default(STUDENT)
-  profileImage  String?
-  enrollments   Enrollment[]
-  materials     Material[]     @relation("UploadedBy")
-  quizAttempts  QuizAttempt[]
-  loginActivity LoginActivity?
-  notifications Notification[] @relation("UserNotifications")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                    String                 @id @default(uuid())
+  email                 String                 @unique
+  passwordHash          String
+  name                  String
+  role                  Role                   @default(STUDENT)
+  profileImage          String?
+  enrollments           Enrollment[]
+  materials             Material[]             @relation("UploadedBy")
+  assignmentsCreated    Assignment[]           @relation("ProfessorAssignments")
+  assignmentSubmissions AssignmentSubmission[] @relation("StudentSubmissions")
+  quizAttempts          QuizAttempt[]
+  loginActivity         LoginActivity?
+  notifications         Notification[]         @relation("UserNotifications")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 model LoginActivity {
@@ -83,6 +97,7 @@ model Course {
   description   String?
   enrollments   Enrollment[]
   materials     Material[]
+  assignments   Assignment[]
   quizzes       Quiz[]
   notifications Notification[]
   createdAt     DateTime       @default(now())
@@ -114,9 +129,25 @@ model Material {
   course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   uploader     User             @relation("UploadedBy", fields: [uploaderId], references: [id])
   chunks       DocumentChunk[]
+  summaries    MaterialSummary[]
   quizzes      Quiz[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+}
+
+model MaterialSummary {
+  id          String   @id @default(uuid())
+  materialId  String
+  summaryType String   // 'overview' | 'detailed' | 'exam-notes' | 'simplified'
+  summaryText String
+  sourcePages Int[]    // array of referenced page numbers
+  docVersion  DateTime // material.updatedAt at time of generation
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  material    Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, summaryType])
+  @@index([materialId])
 }
 
 model DocumentChunk {
@@ -155,6 +186,8 @@ model Question {
   correctIndex  Int             // 0-3; private to backend during attempt
   explanation   String
   pageReference Int?
+  questionType  String?         // 'CONCEPTUAL' | 'APPLICATION' | 'ANALYTICAL' | 'SCENARIO' | 'KNOWLEDGE'
+  difficulty    String?         // 'EASY' | 'MEDIUM' | 'HARD'
   quiz          Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers       AttemptAnswer[]
 }
@@ -180,3 +213,48 @@ model AttemptAnswer {
   attempt        QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question       Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
+
+model Assignment {
+  id                  String                 @id @default(uuid())
+  courseId            String
+  professorId         String
+  title               String
+  description         String
+  attachmentPath      String?
+  attachmentName      String?
+  attachmentSize      Int?
+  deadline            DateTime
+  status              AssignmentStatus       @default(PUBLISHED)
+  allowLateSubmission Boolean                @default(false)
+  submissions         AssignmentSubmission[]
+  course              Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  professor           User                   @relation("ProfessorAssignments", fields: [professorId], references: [id], onDelete: Cascade)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@index([courseId])
+  @@index([deadline])
+}
+
+model AssignmentSubmission {
+  id                String           @id @default(uuid())
+  assignmentId      String
+  studentId         String
+  filePath          String
+  originalFileName  String
+  fileSize          Int?
+  submittedAt       DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  status            SubmissionStatus @default(SUBMITTED)
+  isLate            Boolean          @default(false)
+  timingDescription String?
+  grade             Float?
+  feedback          String?
+  assignment        Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student           User             @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@index([assignmentId])
+  @@index([studentId])
+}
+

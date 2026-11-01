@@ -207,50 +207,64 @@ export default function TeacherQuizzesPage() {
 
         {/* Quiz Detailed Question Breakdown & Submissions Modal */}
         {selectedQuiz && (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-3xl bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="w-full max-w-3xl border rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            >
               {/* Modal Header */}
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between pb-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950/70 text-indigo-400 border border-indigo-800/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                       {selectedQuiz.course?.code}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#15203a] text-gray-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold border" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}>
                       {selectedQuiz.topic}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-white mt-1">{selectedQuiz.title}</h2>
-                  <p className="text-xs text-gray-400">
+                  <h2 className="text-xl font-bold mt-1" style={{ color: 'var(--text-main)' }}>{selectedQuiz.title}</h2>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Source: {selectedQuiz.material?.title || selectedQuiz.material?.fileName || 'Course syllabus'}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedQuiz(null)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-[#1a253d] transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Sub-tabs: Questions Breakdown vs Student Submissions */}
-              <div className="flex items-center gap-2 border-b border-[#1b263e] pb-1">
+              <div className="flex items-center gap-2 border-b pb-1" style={{ borderColor: 'var(--border-color)' }}>
                 <button
+                  type="button"
                   onClick={() => setActiveModalTab('questions')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeModalTab === 'questions'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-[#121c32]'
+                      ? 'btn-primary'
+                      : 'btn-secondary'
                   }`}
                 >
                   Question Analytics ({selectedQuiz.questions?.length || selectedQuiz.questionCount})
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveModalTab('submissions')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeModalTab === 'submissions'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-[#121c32]'
+                      ? 'btn-primary'
+                      : 'btn-secondary'
                   }`}
                 >
                   Student Submissions ({selectedQuiz.attempts?.length || selectedQuiz.attemptsCount})
@@ -261,31 +275,35 @@ export default function TeacherQuizzesPage() {
               {activeModalTab === 'questions' && (
                 <div className="space-y-3">
                   {!selectedQuiz.questions || selectedQuiz.questions.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400 text-xs">
+                    <div className="p-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
                       No question breakdown data available.
                     </div>
                   ) : (
                     selectedQuiz.questions.map((ques, qIdx) => (
                       <div
                         key={ques.id}
-                        className="p-4 rounded-xl bg-[#080d1a] border border-[#1c2944] space-y-2.5 text-xs"
+                        className="p-4 rounded-xl border space-y-2.5 text-xs"
+                        style={{
+                          backgroundColor: 'var(--bg-subtle)',
+                          borderColor: 'var(--border-color)',
+                        }}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="font-semibold text-white leading-relaxed">
-                            <span className="text-indigo-400 font-bold mr-1.5">Q{qIdx + 1}.</span>
+                          <div className="font-semibold leading-relaxed" style={{ color: 'var(--text-main)' }}>
+                            <span className="font-bold mr-1.5" style={{ color: 'var(--primary)' }}>Q{qIdx + 1}.</span>
                             {ques.questionText}
                           </div>
                           <div className="text-right shrink-0">
                             <span
                               className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                                 ques.successRate >= 60
-                                  ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/40'
-                                  : 'bg-rose-950/60 text-rose-400 border-rose-800/40'
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
                               }`}
                             >
                               {ques.successRate}% Success
                             </span>
-                            <div className="text-[10px] text-gray-500 mt-0.5">
+                            <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                               {ques.correctResponses}/{ques.totalResponses} correct
                             </div>
                           </div>
@@ -298,8 +316,8 @@ export default function TeacherQuizzesPage() {
                               key={oIdx}
                               className={`p-2 rounded-lg text-[11px] border ${
                                 oIdx === ques.correctIndex
-                                  ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300 font-semibold'
-                                  : 'bg-[#0e1628] border-[#1b263e] text-gray-400'
+                                  ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-semibold'
+                                  : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-secondary)]'
                               }`}
                             >
                               <span className="font-bold mr-1.5">
@@ -312,14 +330,21 @@ export default function TeacherQuizzesPage() {
 
                         {/* Explanation */}
                         {ques.explanation && (
-                          <div className="p-2.5 rounded-lg bg-[#0e172a] border border-[#1d2a45] text-gray-300 text-[11px]">
-                            <span className="font-bold text-indigo-300">Explanation: </span>
+                          <div
+                            className="p-2.5 rounded-lg border text-[11px]"
+                            style={{
+                              backgroundColor: 'var(--bg-card)',
+                              borderColor: 'var(--border-color)',
+                              color: 'var(--text-secondary)',
+                            }}
+                          >
+                            <span className="font-bold" style={{ color: 'var(--primary)' }}>Explanation: </span>
                             {ques.explanation}
                           </div>
                         )}
 
                         {ques.pageReference && (
-                          <div className="text-[10px] text-indigo-400">
+                          <div className="text-[10px] font-medium" style={{ color: 'var(--primary)' }}>
                             Page {ques.pageReference} in source lecture document
                           </div>
                         )}
@@ -333,26 +358,30 @@ export default function TeacherQuizzesPage() {
               {activeModalTab === 'submissions' && (
                 <div className="space-y-2">
                   {!selectedQuiz.attempts || selectedQuiz.attempts.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400 text-xs">
+                    <div className="p-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
                       No student submissions recorded for this quiz yet.
                     </div>
                   ) : (
                     selectedQuiz.attempts.map((att) => (
                       <div
                         key={att.id}
-                        className="p-3 rounded-xl bg-[#080d1a] border border-[#1c2944] flex items-center justify-between text-xs"
+                        className="p-3 rounded-xl border flex items-center justify-between text-xs"
+                        style={{
+                          backgroundColor: 'var(--bg-subtle)',
+                          borderColor: 'var(--border-color)',
+                        }}
                       >
                         <div>
-                          <div className="font-bold text-white text-sm">{att.studentName}</div>
-                          <div className="text-gray-400 text-[11px] font-mono">{att.studentEmail}</div>
-                          <div className="text-[10px] text-gray-500 mt-0.5">
+                          <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>{att.studentName}</div>
+                          <div className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>{att.studentEmail}</div>
+                          <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-subtle)' }}>
                             Attempted on {new Date(att.createdAt).toLocaleString()}
                           </div>
                         </div>
                         <div className="text-right">
                           <div
                             className={`font-black text-sm ${
-                              att.percentage >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                              att.percentage >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                             }`}
                           >
                             {att.score} / {att.maxScore} ({att.percentage}%)
@@ -366,8 +395,9 @@ export default function TeacherQuizzesPage() {
 
               <div className="pt-2 flex justify-end">
                 <button
+                  type="button"
                   onClick={() => setSelectedQuiz(null)}
-                  className="px-4 py-2 bg-[#1b263e] hover:bg-[#253555] text-white text-xs font-semibold rounded-lg transition-all"
+                  className="btn-secondary text-xs"
                 >
                   Close
                 </button>

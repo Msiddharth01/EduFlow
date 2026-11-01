@@ -93,33 +93,56 @@ function QuizTakeContent() {
     <AppLayout>
       <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
         {/* Top bar */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#1b253b]">
+        <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/quizzes"
-              className="p-2 rounded-lg bg-[#0e1628] hover:bg-[#162139] border border-[#1e2a45] text-gray-300 hover:text-white transition-colors"
+              className="p-2 rounded-lg border transition-colors"
+              style={{
+                backgroundColor: 'var(--bg-subtle)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
-              <div className="text-xs text-indigo-400 font-bold uppercase tracking-wider">
-                {quiz.course?.code} · {quiz.topic}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--primary)' }}>
+                  {quiz.course?.code} · {quiz.topic}
+                </span>
+                {quiz.material?.title && (
+                  <span
+                    className="text-[11px] px-2 py-0.5 rounded-md font-medium border"
+                    style={{
+                      backgroundColor: 'var(--bg-subtle)',
+                      borderColor: 'var(--border-color)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Source: {quiz.material.title}
+                  </span>
+                )}
               </div>
-              <h1 className="text-xl font-bold text-white">{quiz.title}</h1>
+              <h1 className="text-xl font-bold mt-0.5" style={{ color: 'var(--text-main)' }}>{quiz.title}</h1>
             </div>
           </div>
 
-          <div className="text-xs text-gray-400">
-            Question <span className="text-white font-bold">{currentIndex + 1}</span> of{' '}
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Question <span className="font-bold" style={{ color: 'var(--text-main)' }}>{currentIndex + 1}</span> of{' '}
             {quiz.questions.length}
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-[#11192b] h-1.5 rounded-full overflow-hidden">
+        <div
+          className="w-full h-1.5 rounded-full overflow-hidden"
+          style={{ backgroundColor: 'var(--border-color)' }}
+        >
           <div
-            className="bg-indigo-500 h-full transition-all duration-300"
+            className="h-full transition-all duration-300"
             style={{
+              backgroundColor: 'var(--primary)',
               width: `${((currentIndex + 1) / quiz.questions.length) * 100}%`,
             }}
           />
@@ -127,21 +150,21 @@ function QuizTakeContent() {
 
         {/* If Quiz Completed Result */}
         {result ? (
-          <div className="p-6 md:p-8 rounded-2xl bg-[#0d1425] border border-indigo-900/40 space-y-6">
-            <div className="text-center space-y-2 pb-6 border-b border-[#1b263e]">
-              <div className="w-16 h-16 rounded-full bg-emerald-950/60 border border-emerald-700/50 flex items-center justify-center mx-auto text-emerald-400 mb-2">
+          <div className="p-6 md:p-8 rounded-2xl app-card space-y-6">
+            <div className="text-center space-y-2 pb-6 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-500 mb-2">
                 <Award className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Quiz Completed!</h2>
-              <p className="text-sm text-gray-400">
-                You scored <span className="text-emerald-400 font-bold">{result.score}</span> out of{' '}
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-main)' }}>Quiz Completed!</h2>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                You scored <span className="text-emerald-600 dark:text-emerald-400 font-bold">{result.score}</span> out of{' '}
                 {result.maxScore} ({result.percentage}%)
               </p>
             </div>
 
             {/* Answer Breakdown with Explanations */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">
+              <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                 Review & Explanations
               </h3>
 
@@ -150,32 +173,67 @@ function QuizTakeContent() {
                   key={ans.questionId}
                   className={`p-4 rounded-xl border text-xs space-y-2.5 ${
                     ans.isCorrect
-                      ? 'bg-emerald-950/20 border-emerald-800/40'
-                      : 'bg-red-950/20 border-red-800/40'
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : 'bg-rose-500/10 border-rose-500/30'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="font-semibold text-white">
-                      {idx + 1}. {ans.questionText}
-                    </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {ans.questionType && (
+                          <span
+                            className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border"
+                            style={{
+                              backgroundColor: 'var(--bg-subtle)',
+                              borderColor: 'var(--border-color)',
+                              color: 'var(--primary)',
+                            }}
+                          >
+                            {ans.questionType}
+                          </span>
+                        )}
+                        {ans.difficulty && (
+                          <span
+                            className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border"
+                            style={{
+                              backgroundColor: 'var(--bg-subtle)',
+                              borderColor: 'var(--border-color)',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            {ans.difficulty}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-semibold block" style={{ color: 'var(--text-main)' }}>
+                        {idx + 1}. {ans.questionText}
+                      </span>
+                    </div>
                     {ans.isCorrect ? (
-                      <span className="flex items-center gap-1 text-emerald-400 font-bold flex-shrink-0">
+                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold flex-shrink-0">
                         <CheckCircle className="w-4 h-4" /> Correct
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-red-400 font-bold flex-shrink-0">
+                      <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold flex-shrink-0">
                         <XCircle className="w-4 h-4" /> Incorrect
                       </span>
                     )}
                   </div>
 
-                  <div className="text-gray-300">
-                    <span className="text-gray-400">Correct Answer: </span>
-                    <span className="font-medium text-emerald-300">Option {ans.correctOption + 1}</span>
+                  <div style={{ color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Correct Answer: </span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-300">Option {ans.correctOption + 1}</span>
                   </div>
 
                   {ans.explanation && (
-                    <div className="p-2.5 rounded bg-[#0a0f1d] border border-[#1b263e] text-gray-300 italic">
+                    <div
+                      className="p-2.5 rounded-lg border italic"
+                      style={{
+                        backgroundColor: 'var(--bg-subtle)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       💡 {ans.explanation}
                     </div>
                   )}
@@ -185,19 +243,20 @@ function QuizTakeContent() {
 
             <div className="flex gap-4 pt-4">
               <button
+                type="button"
                 onClick={() => {
                   setResult(null);
                   setSelectedAnswers({});
                   setCurrentIndex(0);
                 }}
-                className="flex-1 py-2.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-200 border border-[#23314f] rounded-lg text-xs font-semibold flex items-center justify-center gap-2"
+                className="btn-secondary flex-1"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Retry Quiz</span>
               </button>
               <Link
                 href="/dashboard/progress"
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold text-center"
+                className="btn-primary flex-1 text-center"
               >
                 View Updated Mastery Progress →
               </Link>
@@ -205,8 +264,35 @@ function QuizTakeContent() {
           </div>
         ) : (
           /* Question Taking Card */
-          <div className="p-6 md:p-8 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-6">
-            <h2 className="text-base md:text-lg font-semibold text-white leading-relaxed">
+          <div className="p-6 md:p-8 rounded-2xl app-card space-y-6">
+            <div className="flex items-center gap-2 flex-wrap">
+              {currentQ.questionType && (
+                <span
+                  className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border"
+                  style={{
+                    backgroundColor: 'var(--primary-light)',
+                    borderColor: 'var(--primary)',
+                    color: 'var(--primary)',
+                  }}
+                >
+                  {currentQ.questionType}
+                </span>
+              )}
+              {currentQ.difficulty && (
+                <span
+                  className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border"
+                  style={{
+                    backgroundColor: 'var(--bg-subtle)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  {currentQ.difficulty}
+                </span>
+              )}
+            </div>
+
+            <h2 className="text-base md:text-lg font-semibold leading-relaxed" style={{ color: 'var(--text-main)' }}>
               {currentQ.questionText}
             </h2>
 
@@ -217,19 +303,22 @@ function QuizTakeContent() {
                 return (
                   <button
                     key={optIdx}
+                    type="button"
                     onClick={() => handleSelectOption(currentQ.id, optIdx)}
-                    className={`w-full p-4 rounded-xl border text-left text-xs md:text-sm font-medium transition-all flex items-center gap-3 ${
-                      isSelected
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                        : 'bg-[#10172a] border-[#1e2a44] text-gray-300 hover:bg-[#141d33] hover:border-gray-600'
-                    }`}
+                    className="w-full p-4 rounded-xl border text-left text-xs md:text-sm font-medium transition-all flex items-center gap-3 cursor-pointer"
+                    style={{
+                      backgroundColor: isSelected ? 'var(--primary-light)' : 'var(--bg-subtle)',
+                      borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+                      color: isSelected ? 'var(--primary)' : 'var(--text-main)',
+                    }}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs ${
-                        isSelected
-                          ? 'border-indigo-400 bg-indigo-600 text-white'
-                          : 'border-gray-500 text-gray-400'
-                      }`}
+                      className="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold"
+                      style={{
+                        backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
+                        borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+                        color: isSelected ? '#FFFFFF' : 'var(--text-muted)',
+                      }}
                     >
                       {String.fromCharCode(65 + optIdx)}
                     </div>
@@ -240,27 +329,30 @@ function QuizTakeContent() {
             </div>
 
             {/* Question Navigation Controls */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#18233a]">
+            <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
               <button
+                type="button"
                 onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentIndex === 0}
-                className="px-4 py-2 rounded-lg bg-[#11192d] border border-[#1e2a44] text-xs font-medium text-gray-300 disabled:opacity-40"
+                className="btn-secondary text-xs"
               >
                 Previous
               </button>
 
               {isLast ? (
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-600/20"
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer"
                 >
                   {submitting ? 'Submitting & Scoring...' : 'Submit Final Answers'}
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setCurrentIndex((prev) => Math.min(quiz.questions.length - 1, prev + 1))}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                  className="btn-primary text-xs"
                 >
                   <span>Next Question</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -278,7 +370,7 @@ export default function QuizTakePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#070b14] flex items-center justify-center text-gray-400">
+        <div className="min-h-screen flex items-center justify-center text-gray-400" style={{ backgroundColor: 'var(--bg-main)' }}>
           Loading...
         </div>
       }

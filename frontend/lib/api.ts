@@ -185,8 +185,21 @@ export const tutorApi = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  generateSummary: (courseId: string, body: { materialId: string; summaryType: 'concise' | 'detailed' | 'revision-notes' }) =>
-    apiFetch<{ summary: string; materialTitle: string; summaryType: string }>(`/courses/${courseId}/summaries`, {
+  generateSummary: (
+    courseId: string,
+    body: {
+      materialId: string;
+      summaryType: 'overview' | 'detailed' | 'exam-notes' | 'simplified' | 'concise' | 'revision-notes';
+    }
+  ) =>
+    apiFetch<{
+      summary: string;
+      materialTitle: string;
+      summaryType: string;
+      sourcePages?: number[];
+      isCached?: boolean;
+      generatedAt?: string;
+    }>(`/courses/${courseId}/summaries`, {
       method: 'POST',
       body: JSON.stringify(body),
     }),
@@ -251,7 +264,243 @@ export const teacherApi = {
     apiFetch<TeacherCourseAnalytics>(`/courses/${courseId}/teacher-analytics`),
 };
 
+export const assignmentApi = {
+  listByCourse: (courseId: string) =>
+    apiFetch<{ assignments: CourseAssignment[]; isProfessor: boolean }>(`/assignments/courses/${courseId}`),
+  get: (assignmentId: string) =>
+    apiFetch<{ assignment: CourseAssignment; isProfessor: boolean }>(`/assignments/${assignmentId}`),
+  create: (courseId: string, formData: FormData) =>
+    apiFetch<{ message: string; assignment: CourseAssignment }>(`/assignments/courses/${courseId}`, {
+      method: 'POST',
+      body: formData,
+    }),
+  update: (assignmentId: string, formData: FormData) =>
+    apiFetch<{ message: string; assignment: CourseAssignment }>(`/assignments/${assignmentId}`, {
+      method: 'PUT',
+      body: formData,
+    }),
+  delete: (assignmentId: string) =>
+    apiFetch<{ message: string }>(`/assignments/${assignmentId}`, {
+      method: 'DELETE',
+    }),
+  getSubmissions: (assignmentId: string) =>
+    apiFetch<AssignmentSubmissionsDashboard>(`/assignments/${assignmentId}/submissions`),
+  submit: (assignmentId: string, formData: FormData) =>
+    apiFetch<{ message: string; submission: StudentSubmissionInfo }>(`/assignments/${assignmentId}/submit`, {
+      method: 'POST',
+      body: formData,
+    }),
+  getTimeline: () =>
+    apiFetch<{ timeline: TimelineItem[]; isProfessor: boolean }>('/assignments/timeline'),
+  getMyAssignments: () =>
+    apiFetch<{ assignments: StudentAssignmentItem[] }>('/assignments/my-assignments'),
+  getProfessorAssignments: () =>
+    apiFetch<{ assignments: ProfessorAssignmentItem[] }>('/assignments/professor'),
+  fetchAttachmentBlob: async (
+    assignmentId: string
+  ): Promise<{ success: true; blobUrl: string } | { success: false; error: string }> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) return { success: false, error: 'Access denied. No token provided.' };
+    try {
+      const res = await fetch(`${BASE_URL}/assignments/${assignmentId}/attachment`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        return { success: false, error: json.error || `Failed to load PDF (HTTP ${res.status})` };
+      }
+      const blob = await res.blob();
+      return { success: true, blobUrl: URL.createObjectURL(blob) };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error fetching reference PDF.' };
+    }
+  },
+  fetchSubmissionBlob: async (
+    submissionId: string
+  ): Promise<{ success: true; blobUrl: string } | { success: false; error: string }> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) return { success: false, error: 'Access denied. No token provided.' };
+    try {
+      const res = await fetch(`${BASE_URL}/assignments/submissions/${submissionId}/file`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        return { success: false, error: json.error || `Failed to load submission PDF (HTTP ${res.status})` };
+      }
+      const blob = await res.blob();
+      return { success: true, blobUrl: URL.createObjectURL(blob) };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error fetching submission PDF.' };
+    }
+  },
+};
+
 // Types
+export interface StudentSubmissionInfo {
+  id: string;
+  studentId: string;
+  status: 'SUBMITTED' | 'RESUBMITTED' | 'LATE' | 'GRADED';
+  submittedAt: string;
+  submittedAtFormatted: string;
+  isLate: boolean;
+  timingDescription: string;
+  timingShort?: string;
+  originalFileName: string;
+  fileSize?: number | null;
+}
+
+export interface CourseAssignment {
+  id: string;
+  courseId: string;
+  professorId?: string;
+  title: string;
+  description: string;
+  deadline: string;
+  deadlineFormatted: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  allowLateSubmission: boolean;
+  hasAttachment: boolean;
+  attachmentName?: string | null;
+  attachmentSize?: number | null;
+  isPastDeadline: boolean;
+  countdown: string;
+  canSubmit?: boolean;
+  displayStatus?: 'Submitted' | 'Not Submitted' | 'Overdue' | 'Late Submitted';
+  mySubmission?: StudentSubmissionInfo | null;
+  totalEnrolled?: number;
+  submittedCount?: number;
+  notSubmittedCount?: number;
+  course: { id: string; code: string; title: string };
+  professor?: { id: string; name: string; email: string };
+}
+
+export interface AssignmentSubmissionsDashboard {
+  assignment: {
+    id: string;
+    title: string;
+    description: string;
+    deadline: string;
+    deadlineFormatted: string;
+    allowLateSubmission: boolean;
+    status: 'DRAFT' | 'PUBLISHED';
+    hasAttachment: boolean;
+    attachmentName?: string | null;
+    courseCode: string;
+    courseTitle: string;
+  };
+  metrics: {
+    totalStudents: number;
+    submittedCount: number;
+    notSubmittedCount: number;
+    earlyCount: number;
+    lateCount: number;
+    submissionRate: number;
+  };
+  submissions: Array<{
+    studentId: string;
+    studentName: string;
+    studentEmail: string;
+    profileImage?: string | null;
+    hasSubmitted: boolean;
+    submissionId: string | null;
+    submittedAt: string | null;
+    submittedAtFormatted: string;
+    originalFileName: string | null;
+    fileSize: number | null;
+    status: 'SUBMITTED' | 'RESUBMITTED' | 'LATE' | 'OVERDUE' | 'NOT_SUBMITTED';
+    isLate: boolean;
+    timingDescription: string;
+    timingShort: string;
+    grade?: number | null;
+    feedback?: string | null;
+  }>;
+}
+
+export interface TimelineItem {
+  id: string;
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  professorName?: string;
+  title: string;
+  description: string;
+  deadline: string;
+  deadlineFormatted: string;
+  countdown: string;
+  isPastDeadline: boolean;
+  status: 'Submitted' | 'Not Submitted' | 'Overdue' | 'Upcoming' | 'Draft' | 'Completed';
+  hasAttachment?: boolean;
+  attachmentName?: string | null;
+  canSubmit?: boolean;
+  submission?: {
+    id: string;
+    submittedAt: string;
+    submittedAtFormatted: string;
+    timingDescription: string;
+    isLate: boolean;
+    originalFileName: string;
+  } | null;
+  timelineStatus?: string;
+  totalEnrolled?: number;
+  submittedCount?: number;
+  notSubmittedCount?: number;
+  recentSubmissions?: Array<{
+    studentName: string;
+    submittedAtFormatted: string;
+    timingShort: string;
+    isLate: boolean;
+  }>;
+}
+
+export interface StudentAssignmentItem {
+  id: string;
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  professorName: string;
+  title: string;
+  description: string;
+  deadline: string;
+  deadlineFormatted: string;
+  countdown: string;
+  isPastDeadline: boolean;
+  status: 'Submitted' | 'Not Submitted' | 'Overdue';
+  allowLateSubmission: boolean;
+  hasAttachment: boolean;
+  attachmentName?: string | null;
+  canSubmit: boolean;
+  mySubmission?: {
+    id: string;
+    submittedAt: string;
+    submittedAtFormatted: string;
+    timingDescription: string;
+    isLate: boolean;
+    originalFileName: string;
+  } | null;
+}
+
+export interface ProfessorAssignmentItem {
+  id: string;
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  title: string;
+  description: string;
+  deadline: string;
+  deadlineFormatted: string;
+  countdown: string;
+  isPastDeadline: boolean;
+  status: 'DRAFT' | 'PUBLISHED';
+  allowLateSubmission: boolean;
+  hasAttachment: boolean;
+  attachmentName?: string | null;
+  totalEnrolled: number;
+  submittedCount: number;
+  notSubmittedCount: number;
+  lateCount: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -392,12 +641,21 @@ export interface QuestionForStudent {
   questionText: string;
   options: string[];
   pageReference?: number | null;
+  questionType?: string;
+  difficulty?: string;
 }
 
 export interface QuizWithQuestions {
   id: string;
   title: string;
   topic: string;
+  courseId?: string;
+  materialId?: string | null;
+  material?: {
+    id: string;
+    title: string;
+    fileName: string;
+  } | null;
   course: Course;
   questions: QuestionForStudent[];
 }
@@ -409,6 +667,8 @@ export interface EvaluatedAnswer {
   correctOption: number;
   explanation: string;
   questionText: string;
+  questionType?: string;
+  difficulty?: string;
 }
 
 export interface CreateQuizPayload {

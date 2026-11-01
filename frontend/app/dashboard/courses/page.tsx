@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
+import StudentCourseCard from '@/components/StudentCourseCard';
 import { courseApi, CourseWithMeta } from '@/lib/api';
 import { BookOpen, Plus, FileText, CheckCircle, Search, Users } from 'lucide-react';
 
@@ -71,7 +72,7 @@ export default function CoursesListPage() {
   return (
     <AppLayout>
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1b253b]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
               <BookOpen className="w-6 h-6 text-indigo-500" />
@@ -149,56 +150,7 @@ export default function CoursesListPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((course) => (
-              <Link
-                key={course.id}
-                href={`/dashboard/courses/${course.id}`}
-                className="p-5 rounded-xl app-card hover:border-indigo-500/50 transition-all flex flex-col justify-between group cursor-pointer"
-              >
-                <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="px-2 py-0.5 rounded text-xs font-bold tracking-wide bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
-                      {course.code}
-                    </span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                        course.myRoleInCourse === 'PROFESSOR'
-                          ? 'bg-purple-950/50 text-purple-300 border border-purple-800/40'
-                          : 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/40'
-                      }`}
-                    >
-                      {course.myRoleInCourse}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-semibold transition-colors mb-2" style={{ color: 'var(--text-main)' }}>
-                    {course.title}
-                  </h3>
-
-                  {course.description && (
-                    <p className="text-xs line-clamp-2 leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>
-                      {course.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="pt-3 border-t border-[#182238] flex items-center justify-between text-xs" style={{ color: 'var(--text-muted)' }}>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                      {course._count?.materials ?? 0}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                      {course._count?.quizzes ?? 0}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-cyan-500" />
-                      {course._count?.enrollments ?? 0}
-                    </span>
-                  </div>
-                  <span className="text-indigo-500 font-medium group-hover:underline">Enter Workspace →</span>
-                </div>
-              </Link>
+              <StudentCourseCard key={course.id} course={course} />
             ))}
           </div>
         )}

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
-import { teacherApi, courseApi, TeacherDashboardData, TeacherWeakTopicItem, TeacherCourseOverviewItem } from '@/lib/api';
+import { teacherApi, courseApi, assignmentApi, TeacherDashboardData, TeacherWeakTopicItem, TeacherCourseOverviewItem, TimelineItem } from '@/lib/api';
 import {
   Users,
   GraduationCap,
@@ -30,6 +30,7 @@ import {
   Trash2,
   X,
   AlertCircle,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function TeacherDashboardPage() {
@@ -37,6 +38,7 @@ export default function TeacherDashboardPage() {
   const router = useRouter();
 
   const [data, setData] = useState<TeacherDashboardData | null>(null);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -144,9 +146,15 @@ export default function TeacherDashboardPage() {
   const loadDashboard = async () => {
     try {
       setRefreshing(true);
-      const res = await teacherApi.getDashboard();
+      const [res, timeRes] = await Promise.all([
+        teacherApi.getDashboard(),
+        assignmentApi.getTimeline(),
+      ]);
       if (res.success) {
         setData(res.data);
+      }
+      if (timeRes.success) {
+        setTimeline(timeRes.data.timeline);
       }
     } catch (err) {
       console.error('Failed to load teacher dashboard:', err);
@@ -468,12 +476,18 @@ export default function TeacherDashboardPage() {
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
 
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-4 gap-1.5">
                       <Link
                         href={`/dashboard/courses/${course.id}?tab=materials`}
                         className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
                       >
                         Materials
+                      </Link>
+                      <Link
+                        href={`/dashboard/courses/${course.id}?tab=assignments`}
+                        className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-indigo-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
+                      >
+                        Tasks
                       </Link>
                       <Link
                         href={`/dashboard/teacher/students?course=${course.id}`}
@@ -491,6 +505,108 @@ export default function TeacherDashboardPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* SECTION: ASSIGNMENT TIMELINE & SUBMISSION PROGRESS */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-indigo-400" />
+                <span>Assignment Deadlines & Submission Progress</span>
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Real-time tracking of coursework deadlines, submission rates, and recent student hand-ins.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/teacher/assignments"
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+            >
+              <span>Manage Assignments</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {timeline.length === 0 ? (
+            <div className="p-8 text-center bg-[#0d1425] border border-[#1b263e] rounded-2xl text-xs text-gray-400 space-y-2">
+              <ClipboardList className="w-8 h-8 text-indigo-400 mx-auto" />
+              <p>No assignments created yet. Create assignments inside your courses to track submissions.</p>
+              <Link
+                href="/dashboard/teacher/assignments"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors mt-1"
+              >
+                <span>Create Assignment</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {timeline.slice(0, 6).map((item) => {
+                const subCount = item.submittedCount ?? 0;
+                const total = item.totalEnrolled ?? 0;
+                const percent = total > 0 ? Math.round((subCount / total) * 100) : 0;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                          {item.courseCode}
+                        </span>
+                        <span
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                            item.timelineStatus === 'Overdue'
+                              ? 'bg-red-950/60 text-red-400 border border-red-800/40'
+                              : item.timelineStatus === 'Completed'
+                              ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
+                              : 'bg-indigo-950/60 text-indigo-300 border border-indigo-800/40'
+                          }`}
+                        >
+                          {item.timelineStatus}
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white line-clamp-1">{item.title}</h3>
+
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <Clock className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                        <span className="truncate">Due: {item.deadlineFormatted}</span>
+                      </div>
+
+                      <p className="text-[11px] text-gray-400">{item.countdown}</p>
+                    </div>
+
+                    {/* Submission Progress Bar */}
+                    <div className="space-y-1.5 pt-2 border-t border-[#162139]">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-400">Handed in</span>
+                        <span className="font-semibold text-white">
+                          {subCount} / {total} ({percent}%)
+                        </span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-[#162139] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-indigo-500 transition-all"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <Link
+                          href={`/dashboard/courses/${item.courseId}?tab=assignments`}
+                          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+                        >
+                          Track Submissions →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -844,36 +960,64 @@ export default function TeacherDashboardPage() {
 
         {/* WEAK TOPIC DETAIL MODAL */}
         {selectedTopic && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div className="bg-[#0c1322] border border-[#1a253c] rounded-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-[#18233a]">
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="border rounded-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            >
+              <div
+                style={{ borderColor: 'var(--border-color)' }}
+                className="flex items-center justify-between pb-3 border-b"
+              >
                 <div>
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Struggled Concept</span>
-                  <h3 className="text-base font-bold text-white mt-0.5">{selectedTopic.topic}</h3>
-                  <p className="text-xs text-gray-400">PDF: {selectedTopic.materialFileName}</p>
+                  <span className="text-xs font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Struggled Concept</span>
+                  <h3 style={{ color: 'var(--text-main)' }} className="text-base font-bold mt-0.5">{selectedTopic.topic}</h3>
+                  <p style={{ color: 'var(--text-muted)' }} className="text-xs">PDF: {selectedTopic.materialFileName}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedTopic(null)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-[#162139]"
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1.5 rounded-lg hover:opacity-80 cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-800/30 text-xs text-amber-300">
+              <div
+                style={{
+                  backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                  borderColor: 'rgba(245, 158, 11, 0.25)',
+                }}
+                className="p-3 rounded-xl border text-xs text-amber-700 dark:text-amber-300"
+              >
                 <strong>Concept Diagnostic:</strong> {selectedTopic.incorrectCount} incorrect responses out of {selectedTopic.totalAnswers} student answers ({selectedTopic.accuracyRate}% accuracy). Below are the questions where students faced difficulty:
               </div>
 
               <div className="space-y-3">
                 {selectedTopic.sampleQuestions.map((q, idx) => (
-                  <div key={q.id} className="p-4 rounded-xl bg-[#080d19] border border-[#172238] space-y-2">
-                    <div className="flex justify-between items-start text-xs text-gray-400">
-                      <span className="font-bold text-white">Question {idx + 1}</span>
-                      <span className="text-rose-400 font-semibold">{q.incorrectCount} student mistake(s)</span>
+                  <div
+                    key={q.id}
+                    style={{
+                      backgroundColor: 'var(--bg-subtle)',
+                      borderColor: 'var(--border-color)',
+                    }}
+                    className="p-4 rounded-xl border space-y-2"
+                  >
+                    <div className="flex justify-between items-start text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <span className="font-bold" style={{ color: 'var(--text-main)' }}>Question {idx + 1}</span>
+                      <span className="text-rose-600 dark:text-rose-400 font-semibold">{q.incorrectCount} student mistake(s)</span>
                     </div>
-                    <p className="text-xs text-gray-200 leading-relaxed">{q.text}</p>
+                    <p style={{ color: 'var(--text-secondary)' }} className="text-xs leading-relaxed">{q.text}</p>
                     {q.pageReference && (
-                      <div className="text-[11px] text-indigo-400">
+                      <div className="text-[11px] font-medium" style={{ color: 'var(--primary)' }}>
                         Referenced in lecture on Page {q.pageReference}
                       </div>
                     )}
@@ -881,10 +1025,11 @@ export default function TeacherDashboardPage() {
                 ))}
               </div>
 
-              <div className="pt-3 border-t border-[#18233a] flex justify-end">
+              <div style={{ borderColor: 'var(--border-color)' }} className="pt-3 border-t flex justify-end">
                 <button
+                  type="button"
                   onClick={() => setSelectedTopic(null)}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+                  className="btn-primary"
                 >
                   Close Diagnostic
                 </button>
@@ -895,13 +1040,28 @@ export default function TeacherDashboardPage() {
 
         {/* CREATE COURSE MODAL */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div className="bg-[#0c1322] border border-[#1a253c] rounded-2xl max-w-md w-full p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#18233a]">
-                <h3 className="text-base font-bold text-white">Create New Course</h3>
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl"
+            >
+              <div
+                style={{ borderColor: 'var(--border-color)' }}
+                className="flex items-center justify-between pb-3 border-b"
+              >
+                <h3 style={{ color: 'var(--text-main)' }} className="text-base font-bold">Create New Course</h3>
                 <button
+                  type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-[#162139]"
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1.5 rounded-lg hover:opacity-80 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -909,7 +1069,7 @@ export default function TeacherDashboardPage() {
 
               <form onSubmit={handleCreateCourse} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold mb-1 uppercase tracking-wider">
                     Course Code (Unique)
                   </label>
                   <input
@@ -918,12 +1078,12 @@ export default function TeacherDashboardPage() {
                     placeholder="e.g. CS401 or CCSET301"
                     value={courseForm.code}
                     onChange={(e) => setCourseForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
-                    className="w-full px-3 py-2 bg-[#080d19] border border-[#1f2c4a] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="app-input uppercase tracking-wider font-mono text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold mb-1 uppercase tracking-wider">
                     Course Title
                   </label>
                   <input
@@ -932,12 +1092,12 @@ export default function TeacherDashboardPage() {
                     placeholder="e.g. Advanced Operating Systems"
                     value={courseForm.title}
                     onChange={(e) => setCourseForm((p) => ({ ...p, title: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#080d19] border border-[#1f2c4a] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="app-input text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">
+                  <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold mb-1 uppercase tracking-wider">
                     Description (Optional)
                   </label>
                   <textarea
@@ -945,21 +1105,21 @@ export default function TeacherDashboardPage() {
                     placeholder="Brief description of course syllabus..."
                     value={courseForm.description}
                     onChange={(e) => setCourseForm((p) => ({ ...p, description: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#080d19] border border-[#1f2c4a] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="app-textarea text-xs"
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end gap-2">
+                <div className="pt-2 flex justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-3 py-2 text-xs text-gray-400 hover:text-white"
+                    className="btn-secondary text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+                    className="btn-primary text-xs"
                   >
                     Create Course
                   </button>

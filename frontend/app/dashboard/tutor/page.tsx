@@ -83,21 +83,21 @@ export default function StandaloneTutorPage() {
   return (
     <AppLayout>
       <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1b253b]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-indigo-400" />
+            <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+              <Sparkles className="w-6 h-6 text-indigo-500" />
               <span>AI Tutor</span>
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               Grounded, syllabus-aware answers using RAG with citations and page references.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Active Course:</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Active Course:</span>
             <select
-              className="px-3 py-1.5 bg-[#0c1322] border border-[#1e2a44] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="app-select text-xs py-1.5 w-auto"
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
             >
@@ -112,7 +112,7 @@ export default function StandaloneTutorPage() {
 
         {/* Suggested Prompts */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-400">Quick Prompts:</span>
+          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Quick Prompts:</span>
           {[
             'Explain the core intuition of this course',
             'Summarize the most important formulas/algorithms',
@@ -121,7 +121,8 @@ export default function StandaloneTutorPage() {
             <button
               key={prompt}
               onClick={() => handleAsk(prompt)}
-              className="px-3 py-1.5 bg-[#0e1628] hover:bg-indigo-950/60 border border-[#1e2a44] text-gray-300 hover:text-indigo-300 rounded-lg text-xs transition-colors"
+              className="px-3 py-1.5 app-card-subtle hover:border-indigo-500 text-xs transition-colors cursor-pointer"
+              style={{ color: 'var(--text-secondary)' }}
             >
               {prompt}
             </button>
@@ -129,7 +130,13 @@ export default function StandaloneTutorPage() {
         </div>
 
         {/* Chat Window */}
-        <div className="bg-[#0b101f] border border-[#1b263e] rounded-xl flex flex-col h-[580px] overflow-hidden">
+        <div
+          className="border rounded-xl flex flex-col h-[580px] overflow-hidden shadow-sm"
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            borderColor: 'var(--border-color)',
+          }}
+        >
           <div className="flex-1 p-5 overflow-y-auto space-y-4 text-xs md:text-sm">
             {messages.map((m, idx) => (
               <div
@@ -139,26 +146,40 @@ export default function StandaloneTutorPage() {
                 <div
                   className={`max-w-[85%] p-4 rounded-xl leading-relaxed ${
                     m.role === 'user'
-                      ? 'bg-indigo-600 text-white rounded-br-none'
-                      : 'bg-[#121a2d] text-gray-200 border border-[#1e2a44] rounded-bl-none'
+                      ? 'bg-indigo-600 text-white rounded-br-none shadow-sm'
+                      : 'app-card-subtle rounded-bl-none shadow-sm'
                   }`}
+                  style={
+                    m.role === 'assistant'
+                      ? {
+                          backgroundColor: 'var(--bg-subtle)',
+                          borderColor: 'var(--border-color)',
+                          color: 'var(--text-main)',
+                        }
+                      : undefined
+                  }
                 >
                   <div className="whitespace-pre-wrap">{m.content}</div>
 
                   {m.citations && m.citations.length > 0 && (
-                    <div className="mt-3.5 pt-3 border-t border-[#1e2a44] space-y-2">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+                    <div className="mt-3.5 pt-3 border-t space-y-2" style={{ borderColor: 'var(--border-color)' }}>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-500">
                         Source Citations:
                       </div>
                       {m.citations.map((c, cIdx) => (
                         <div
                           key={cIdx}
-                          className="p-2.5 rounded bg-[#0b1120] border border-indigo-900/30 text-xs text-gray-300"
+                          className="p-2.5 rounded-lg border text-xs"
+                          style={{
+                            backgroundColor: 'var(--bg-card)',
+                            borderColor: 'var(--border-color)',
+                            color: 'var(--text-secondary)',
+                          }}
                         >
-                          <div className="font-semibold text-white">
-                            {c.documentTitle} <span className="text-indigo-400 font-normal ml-2">Page {c.pageNumber}</span>
+                          <div className="font-semibold" style={{ color: 'var(--text-main)' }}>
+                            {c.documentTitle} <span className="text-indigo-500 font-normal ml-2">Page {c.pageNumber}</span>
                           </div>
-                          <p className="text-gray-400 text-[11px] mt-1 italic">{c.snippet}</p>
+                          <p className="text-[11px] mt-1 italic" style={{ color: 'var(--text-muted)' }}>{c.snippet}</p>
                         </div>
                       ))}
                     </div>
@@ -168,7 +189,7 @@ export default function StandaloneTutorPage() {
             ))}
 
             {tutorLoading && (
-              <div className="flex items-center gap-2.5 text-gray-400 text-xs">
+              <div className="flex items-center gap-2.5 text-xs" style={{ color: 'var(--text-muted)' }}>
                 <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 <span>Searching course vector chunks and generating response...</span>
               </div>
@@ -181,10 +202,14 @@ export default function StandaloneTutorPage() {
               e.preventDefault();
               handleAsk();
             }}
-            className="p-3.5 bg-[#0d1425] border-t border-[#1b263e] flex items-center gap-3"
+            className="p-3.5 border-t flex items-center gap-3"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-color)',
+            }}
           >
             <input
-              className="flex-1 px-4 py-2.5 bg-[#080d1a] border border-[#1e2a44] rounded-lg text-xs md:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+              className="app-input flex-1 py-2 text-xs md:text-sm"
               placeholder="Ask a question about your enrolled course materials..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -193,7 +218,7 @@ export default function StandaloneTutorPage() {
             <button
               type="submit"
               disabled={tutorLoading || !question.trim()}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
+              className="btn-primary text-sm"
             >
               <Send className="w-4 h-4" />
               <span className="hidden sm:inline">Ask</span>

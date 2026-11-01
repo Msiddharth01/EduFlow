@@ -1,9 +1,10 @@
 'use client';
 import { Suspense, useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
+import CourseAssignmentsTab from '@/components/CourseAssignmentsTab';
 import {
   courseApi,
   materialApi,
@@ -44,10 +45,13 @@ import {
   Trash2,
   X,
   AlertTriangle,
+  ClipboardList,
 } from 'lucide-react';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 function CourseWorkspaceContent() {
   const { courseId } = useParams<{ courseId: string }>();
+  const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -55,8 +59,19 @@ function CourseWorkspaceContent() {
   const [userRole, setUserRole] = useState<string>('STUDENT');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'materials' | 'tutor' | 'summaries' | 'quizzes' | 'progress' | 'roster' | 'analytics'
-  >('overview');
+    'overview' | 'materials' | 'assignments' | 'tutor' | 'summaries' | 'quizzes' | 'progress' | 'roster' | 'analytics'
+  >(() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam === 'assignments') return 'assignments';
+    return 'overview';
+  });
+
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam === 'assignments') {
+      setActiveTab('assignments');
+    }
+  }, [searchParams]);
 
   // Teacher Analytics State
   const [courseAnalytics, setCourseAnalytics] = useState<TeacherCourseAnalytics | null>(null);
@@ -90,9 +105,16 @@ function CourseWorkspaceContent() {
 
   // Summaries state
   const [summaryMaterialId, setSummaryMaterialId] = useState<string>('');
-  const [summaryType, setSummaryType] = useState<'concise' | 'detailed' | 'revision-notes'>('detailed');
-  const [summaryResult, setSummaryResult] = useState<{ title: string; text: string; type: string } | null>(null);
+  const [summaryType, setSummaryType] = useState<'overview' | 'detailed' | 'exam-notes' | 'simplified' | 'concise' | 'revision-notes'>('detailed');
+  const [summaryResult, setSummaryResult] = useState<{
+    title: string;
+    text: string;
+    type: string;
+    sourcePages?: number[];
+    isCached?: boolean;
+  } | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   // Quizzes state
   const [courseQuizzes, setCourseQuizzes] = useState<QuizWithMeta[]>([]);
@@ -377,6 +399,7 @@ function CourseWorkspaceContent() {
   const handleGenerateSummary = async () => {
     if (!courseId || !summaryMaterialId || summaryLoading) return;
     setSummaryLoading(true);
+    setSummaryError(null);
 
     const res = await tutorApi.generateSummary(courseId, {
       materialId: summaryMaterialId,
@@ -388,7 +411,11 @@ function CourseWorkspaceContent() {
         title: res.data.materialTitle,
         text: res.data.summary,
         type: res.data.summaryType,
+        sourcePages: res.data.sourcePages,
+        isCached: res.data.isCached,
       });
+    } else {
+      setSummaryError(res.error || 'Failed to generate summary.');
     }
     setSummaryLoading(false);
   };
@@ -585,6 +612,7 @@ function CourseWorkspaceContent() {
           {[
             { id: 'overview', label: 'Overview', icon: BookOpen },
             { id: 'materials', label: `Materials (${course.materials.length})`, icon: FileText },
+            { id: 'assignments', label: 'Assignments', icon: ClipboardList },
             ...(isProfessor
               ? [
                   {
@@ -618,6 +646,15 @@ function CourseWorkspaceContent() {
             );
           })}
         </div>
+
+        {/* TAB: ASSIGNMENTS */}
+        {activeTab === 'assignments' && (
+          <CourseAssignmentsTab
+            courseId={course.id}
+            courseCode={course.code}
+            isProfessor={isProfessor}
+          />
+        )}
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
@@ -1162,8 +1199,9 @@ function CourseWorkspaceContent() {
                     onChange={(e) => setSummaryType(e.target.value as any)}
                   >
                     <option value="detailed">In-Depth Structured Breakdown</option>
-                    <option value="concise">Concise 3-Bullet Executive Overview</option>
-                    <option value="revision-notes">Exam Revision Flash Notes</option>
+                    <option value="overview">Quick Overview</option>
+                    <option value="exam-notes">Exam Preparation Notes</option>
+                    <option value="simplified">Simplified Explanation</option>
                   </select>
                 </div>
 
@@ -1171,7 +1209,7 @@ function CourseWorkspaceContent() {
                   <button
                     onClick={handleGenerateSummary}
                     disabled={summaryLoading || !summaryMaterialId}
-                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {summaryLoading ? (
                       <>
@@ -1189,27 +1227,66 @@ function CourseWorkspaceContent() {
               </div>
             </div>
 
+            {/* Error Message */}
+            {summaryError && (
+              <div className="p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-xs flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-400 mt-0.5" />
+                <div>
+                  <p className="font-bold text-sm">Summary Generation Failed</p>
+                  <p className="mt-1 leading-relaxed">{summaryError}</p>
+                </div>
+              </div>
+            )}
+
             {/* Summary View Container */}
             {summaryResult ? (
-              <div className="p-6 rounded-xl bg-[#0d1425] border border-indigo-900/30 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#1b263e]">
+              <div className="p-6 md:p-8 rounded-xl bg-[#0d1425] border border-indigo-900/30 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#1b263e] gap-3">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                      {summaryResult.type.replace('-', ' ')}
-                    </span>
-                    <h3 className="text-lg font-bold text-white mt-0.5">{summaryResult.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-950/60 text-indigo-400 border border-indigo-800">
+                        {summaryResult.type.replace('-', ' ')}
+                      </span>
+                      {summaryResult.sourcePages && summaryResult.sourcePages.length > 0 && (
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{summaryResult.sourcePages.length} Pages Verified</span>
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-white mt-1">{summaryResult.title}</h3>
                   </div>
+
+                  {summaryResult.sourcePages && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-gray-400">Pages:</span>
+                      {summaryResult.sourcePages.slice(0, 8).map((p) => (
+                        <span
+                          key={p}
+                          className="px-2 py-0.5 rounded bg-gray-800 text-gray-300 text-xs font-medium"
+                        >
+                          P.{p}
+                        </span>
+                      ))}
+                      {summaryResult.sourcePages.length > 8 && (
+                        <span className="text-xs text-gray-500">+{summaryResult.sourcePages.length - 8} more</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
-                  {summaryResult.text}
+                {/* Rendered Markdown Body */}
+                <div className="pt-2">
+                  <MarkdownRenderer content={summaryResult.text} />
                 </div>
               </div>
             ) : (
-              <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-2">
-                <Layers className="w-8 h-8 text-gray-500 mx-auto" />
-                <p>Select a material above to create concise or comprehensive revision summaries.</p>
-              </div>
+              !summaryError && (
+                <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-2">
+                  <Layers className="w-8 h-8 text-gray-500 mx-auto" />
+                  <p>Select a material above to create concise or comprehensive revision summaries.</p>
+                </div>
+              )
             )}
           </div>
         )}
@@ -1652,16 +1729,37 @@ function CourseWorkspaceContent() {
 
       {/* Professor Create Quiz Modal */}
       {showCreateQuiz && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-lg bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold text-white">Create Practice Quiz</h2>
+        <div
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-main)',
+            }}
+            className="w-full max-w-lg border rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div style={{ borderColor: 'var(--border-color)' }} className="flex items-center justify-between pb-3 border-b">
+              <h2 style={{ color: 'var(--text-main)' }} className="text-base font-bold">Create Practice Quiz</h2>
+              <button
+                type="button"
+                onClick={() => setShowCreateQuiz(false)}
+                style={{ color: 'var(--text-muted)' }}
+                className="p-1.5 rounded-lg hover:opacity-80 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
             <form onSubmit={handleCreateQuiz} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                   Quiz Title
                 </label>
                 <input
-                  className="w-full px-3 py-2 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg"
+                  className="app-input text-xs"
                   placeholder="e.g. Transformers & Self-Attention Quiz"
                   value={quizForm.title}
                   onChange={(e) => setQuizForm({ ...quizForm, title: e.target.value })}
@@ -1670,11 +1768,11 @@ function CourseWorkspaceContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                   Topic Tag
                 </label>
                 <input
-                  className="w-full px-3 py-2 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg"
+                  className="app-input text-xs"
                   placeholder="e.g. Attention Mechanism"
                   value={quizForm.topic}
                   onChange={(e) => setQuizForm({ ...quizForm, topic: e.target.value })}
@@ -1683,10 +1781,16 @@ function CourseWorkspaceContent() {
               </div>
 
               {/* Question 1 Editor */}
-              <div className="p-3.5 rounded-lg bg-[#0a0f1d] border border-[#1b263e] space-y-2">
-                <div className="text-xs font-bold text-indigo-400">Question 1</div>
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-subtle)',
+                  borderColor: 'var(--border-color)',
+                }}
+                className="p-3.5 rounded-xl border space-y-2.5"
+              >
+                <div className="text-xs font-bold" style={{ color: 'var(--primary)' }}>Question 1</div>
                 <input
-                  className="w-full px-3 py-1.5 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg"
+                  className="app-input text-xs"
                   placeholder="Question text..."
                   value={quizForm.questions[0].questionText}
                   onChange={(e) => {
@@ -1709,9 +1813,10 @@ function CourseWorkspaceContent() {
                           q[0].correctIndex = oIdx;
                           setQuizForm({ ...quizForm, questions: q });
                         }}
+                        className="cursor-pointer"
                       />
                       <input
-                        className="flex-1 px-2.5 py-1 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded"
+                        className="app-input text-xs flex-1 py-1"
                         placeholder={`Option ${oIdx + 1}`}
                         value={opt}
                         onChange={(e) => {
@@ -1726,7 +1831,7 @@ function CourseWorkspaceContent() {
                 </div>
 
                 <input
-                  className="w-full px-3 py-1.5 bg-[#080d1a] border border-[#22304e] text-white text-xs rounded-lg mt-2"
+                  className="app-input text-xs mt-2"
                   placeholder="Explanation for the correct answer..."
                   value={quizForm.questions[0].explanation}
                   onChange={(e) => {
@@ -1741,13 +1846,13 @@ function CourseWorkspaceContent() {
                 <button
                   type="button"
                   onClick={() => setShowCreateQuiz(false)}
-                  className="flex-1 py-2 text-gray-400 border border-gray-700 rounded-lg text-xs"
+                  className="btn-secondary flex-1 text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+                  className="btn-primary flex-1 text-xs"
                 >
                   Save Quiz
                 </button>

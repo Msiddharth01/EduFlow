@@ -52,7 +52,7 @@ export const uploadPdfMiddleware = (req: express.Request, res: express.Response,
 };
 
 import { getOllamaEmbedding } from '../services/ollamaService.js';
-import { extractTextWithOcr } from '../services/ocrService.js';
+import { extractDocumentWithQuality, extractTextWithOcr } from '../services/ocrService.js';
 import { queueQuizGenerationForMaterial } from '../services/quizGeneratorService.js';
 import { notifyEnrolledStudents } from '../services/notificationService.js';
 import { NotificationType } from '@prisma/client';
@@ -162,8 +162,9 @@ export async function retryMaterialProcessing(req: AuthenticatedRequest, res: Re
       return res.status(404).json({ error: 'Underlying document file on disk not found.' });
     }
 
-    // Clear any stale chunks
+    // Clear any stale chunks and cached summaries
     await prisma.documentChunk.deleteMany({ where: { materialId } });
+    await prisma.materialSummary.deleteMany({ where: { materialId } });
 
     // Update status to PROCESSING
     const updated = await prisma.material.update({
@@ -191,110 +192,124 @@ export async function retryMaterialProcessing(req: AuthenticatedRequest, res: Re
   }
 }
 
+function splitTextIntoSmartChunks(text: string, maxChunkSize = 850): string[] {
+  const paragraphs = text.split(/\n\s*\n/).map((p) => p.trim()).filter((p) => p.length > 0);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const para of paragraphs) {
+    if (currentChunk.length + para.length + 2 <= maxChunkSize) {
+      currentChunk = currentChunk ? `${currentChunk}\n\n${para}` : para;
+    } else {
+      if (currentChunk.trim().length >= 35) {
+        chunks.push(currentChunk.trim());
+      }
+      if (para.length > maxChunkSize) {
+        const sentences = para.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [para];
+        let subChunk = '';
+        for (const sent of sentences) {
+          if (subChunk.length + sent.length <= maxChunkSize) {
+            subChunk = subChunk ? `${subChunk} ${sent.trim()}` : sent.trim();
+          } else {
+            if (subChunk.trim().length >= 35) chunks.push(subChunk.trim());
+            subChunk = sent.trim();
+          }
+        }
+        currentChunk = subChunk;
+      } else {
+        currentChunk = para;
+      }
+    }
+  }
+  if (currentChunk.trim().length >= 35) {
+    chunks.push(currentChunk.trim());
+  }
+  return chunks;
+}
+
 export async function processPdfChunks(materialId: string, filePath: string) {
   try {
     console.log(`[PDFPipeline] Processing started for material ID: ${materialId}`);
-    const dataBuffer = fs.readFileSync(filePath);
-    let pageTexts: Array<{ pageNumber: number; text: string }> = [];
-    let pageCount = 0;
 
-    await (pdfParse as any)(dataBuffer, {
-      pagerender: async function (pageData: any) {
-        pageCount++;
-        const current = pageCount;
-        const textContent = await pageData.getTextContent();
-        const text = textContent.items.map((i: any) => i.str).join(' ');
-        if (text.trim().length > 0) {
-          pageTexts.push({ pageNumber: current, text });
-        }
-        return text;
-      },
-    });
+    // Run robust PDF extraction with quality validation & OCR fallback
+    const extraction = await extractDocumentWithQuality(filePath);
 
-    const totalExtractedChars = pageTexts.reduce((acc, p) => acc + p.text.length, 0);
-    console.log(`[PDFPipeline] Digital text extraction found ${totalExtractedChars} characters across ${pageTexts.length} pages (scanned ${pageCount} total pages) for material ${materialId}.`);
+    if (!extraction.isDocumentUsable || extraction.readablePages === 0) {
+      console.warn(`[PDFPipeline] Document ${materialId} failed quality validation: ${extraction.failureReason}`);
+      
+      // Clear stale chunks and summaries
+      await prisma.documentChunk.deleteMany({ where: { materialId } });
+      await prisma.materialSummary.deleteMany({ where: { materialId } });
 
-    // If digital extraction yielded 0 or near-0 characters, fallback to Optical Character Recognition (OCR)
-    if (pageTexts.length === 0 || totalExtractedChars <= 50) {
-      console.log(`[PDFPipeline] Digital text stream was empty or insufficient (${totalExtractedChars} chars). Initiating OCR fallback for scanned/image-based PDF: ${materialId}...`);
-      try {
-        const ocrPages = await extractTextWithOcr(filePath);
-        if (ocrPages.length > 0) {
-          pageTexts = ocrPages;
-          const ocrCharCount = pageTexts.reduce((acc, p) => acc + p.text.length, 0);
-          console.log(`[PDFPipeline] OCR successfully recovered ${ocrCharCount} characters across ${pageTexts.length} pages for material ${materialId}.`);
-        }
-      } catch (ocrErr: any) {
-        console.error(`[PDFPipeline] OCR extraction attempt failed for material ${materialId}:`, ocrErr.message);
-      }
-    }
-
-    const finalExtractedChars = pageTexts.reduce((acc, p) => acc + p.text.length, 0);
-    if (pageTexts.length === 0 || finalExtractedChars === 0) {
-      console.warn(`[PDFPipeline] Document ${materialId} contains no readable text after digital extraction and OCR.`);
       await prisma.material.update({
         where: { id: materialId },
         data: {
           status: 'FAILED',
-          errorMessage: 'Document contains no readable text. Both digital extraction and optical character recognition (OCR) produced zero extractable characters.',
+          errorMessage:
+            extraction.failureReason ||
+            'Document contains no readable text. Scanned pages or handwriting could not be deciphered with reliable accuracy.',
         },
       });
       return;
     }
 
-    const chunkSize = 750;
-    const overlap = 120;
+    console.log(
+      `[PDFPipeline] Usable document confirmed for ${materialId}: ${extraction.readablePages}/${extraction.totalPages} readable pages, ${extraction.totalValidWords} words.`
+    );
+
+    // Clear stale chunks and summaries before inserting newly validated chunks
+    await prisma.documentChunk.deleteMany({ where: { materialId } });
+    await prisma.materialSummary.deleteMany({ where: { materialId } });
+
     let totalChunkIndex = 0;
     let embeddingsIndexed = 0;
     let embeddingFailures = 0;
 
-    for (const page of pageTexts) {
-      const text = page.text;
-      let start = 0;
-      while (start < text.length) {
-        const end = Math.min(start + chunkSize, text.length);
-        const chunk = text.substring(start, end).trim();
-        if (chunk.length > 30) {
-          const docChunk = await prisma.documentChunk.create({
-            data: {
-              materialId,
-              chunkIndex: totalChunkIndex,
-              pageNumber: page.pageNumber,
-              content: chunk,
-            },
-          });
+    const readablePages = extraction.pages.filter((p) => p.isReadable && p.text.trim().length > 0);
 
-          // Attempt pgvector embedding if Ollama embedding service is active
-          try {
-            const embedding = await getOllamaEmbedding(chunk);
-            if (embedding && Array.isArray(embedding) && embedding.length === 768) {
-              const vectorString = `[${embedding.join(',')}]`;
-              await prisma.$executeRawUnsafe(
-                `UPDATE "DocumentChunk" SET embedding = $1::vector WHERE id = $2`,
-                vectorString,
-                docChunk.id
-              );
-              embeddingsIndexed++;
-            } else {
-              embeddingFailures++;
-            }
-          } catch (embedErr: any) {
+    for (const page of readablePages) {
+      const smartChunks = splitTextIntoSmartChunks(page.text);
+
+      for (const chunkContent of smartChunks) {
+        const docChunk = await prisma.documentChunk.create({
+          data: {
+            materialId,
+            chunkIndex: totalChunkIndex,
+            pageNumber: page.pageNumber,
+            content: chunkContent,
+          },
+        });
+
+        // Attempt pgvector embedding if Ollama embedding service is active
+        try {
+          const embedding = await getOllamaEmbedding(chunkContent);
+          if (embedding && Array.isArray(embedding) && embedding.length === 768) {
+            const vectorString = `[${embedding.join(',')}]`;
+            await prisma.$executeRawUnsafe(
+              `UPDATE "DocumentChunk" SET embedding = $1::vector WHERE id = $2`,
+              vectorString,
+              docChunk.id
+            );
+            embeddingsIndexed++;
+          } else {
             embeddingFailures++;
           }
-
-          totalChunkIndex++;
+        } catch (embedErr: any) {
+          embeddingFailures++;
         }
-        start += chunkSize - overlap;
-        if (start >= text.length) break;
+
+        totalChunkIndex++;
       }
     }
 
     if (totalChunkIndex > 0) {
       const updatedMaterial = await prisma.material.update({
         where: { id: materialId },
-        data: { status: 'READY', errorMessage: null },
+        data: { status: 'READY', errorMessage: extraction.noticeMessage || null },
       });
-      console.log(`[PDFPipeline] Indexing complete for material ${materialId}: ${totalChunkIndex} chunks created across ${pageTexts.length} pages. Embeddings stored: ${embeddingsIndexed}, un-embedded: ${embeddingFailures}. Status set to READY.`);
+      console.log(
+        `[PDFPipeline] Indexing complete for material ${materialId}: ${totalChunkIndex} chunks created across ${readablePages.length} pages. Embeddings stored: ${embeddingsIndexed}, un-embedded: ${embeddingFailures}. Status set to READY.`
+      );
 
       // Automatically queue quiz generation in the background without blocking upload response
       queueQuizGenerationForMaterial(updatedMaterial.courseId, materialId, 10, false).catch((qErr) => {

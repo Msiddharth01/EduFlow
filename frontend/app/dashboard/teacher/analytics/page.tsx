@@ -325,26 +325,38 @@ export default function TeacherAnalyticsPage() {
 
         {/* Weak Topic Questions Inspection Modal */}
         {inspectedTopic && (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-2xl bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-start justify-between">
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="w-full max-w-2xl border rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-start justify-between pb-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950/70 text-indigo-400 border border-indigo-800/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                       Concept Diagnostic
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                       {inspectedTopic.accuracyRate}% Accuracy
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-white mt-1">{inspectedTopic.topic}</h2>
-                  <p className="text-xs text-gray-400">
+                  <h2 className="text-xl font-bold mt-1" style={{ color: 'var(--text-main)' }}>{inspectedTopic.topic}</h2>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Source Material: {inspectedTopic.materialTitle || inspectedTopic.materialFileName || 'PDF'}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setInspectedTopic(null)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-[#1a253d] transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -352,26 +364,30 @@ export default function TeacherAnalyticsPage() {
 
               {/* Questions List */}
               <div className="space-y-3 pt-2">
-                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Struggling Questions ({inspectedTopic.sampleQuestions.length})
                 </h3>
                 {inspectedTopic.sampleQuestions.map((q, qIdx) => (
                   <div
                     key={q.id || qIdx}
-                    className="p-4 rounded-xl bg-[#080d1a] border border-[#1c2944] space-y-2 text-xs"
+                    className="p-4 rounded-xl border space-y-2 text-xs"
+                    style={{
+                      backgroundColor: 'var(--bg-subtle)',
+                      borderColor: 'var(--border-color)',
+                    }}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="font-semibold text-white leading-relaxed">
-                        <span className="text-indigo-400 font-bold mr-2">Q{qIdx + 1}.</span>
+                      <div className="font-semibold leading-relaxed" style={{ color: 'var(--text-main)' }}>
+                        <span className="font-bold mr-2" style={{ color: 'var(--primary)' }}>Q{qIdx + 1}.</span>
                         {q.text}
                       </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40 shrink-0">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 shrink-0">
                         {q.incorrectCount} misses
                       </span>
                     </div>
 
                     {q.pageReference && (
-                      <div className="text-[11px] text-indigo-400 font-medium">
+                      <div className="text-[11px] font-medium" style={{ color: 'var(--primary)' }}>
                         Referenced in lecture notes on Page {q.pageReference}
                       </div>
                     )}
@@ -381,8 +397,9 @@ export default function TeacherAnalyticsPage() {
 
               <div className="pt-2 flex justify-end">
                 <button
+                  type="button"
                   onClick={() => setInspectedTopic(null)}
-                  className="px-4 py-2 bg-[#1b263e] hover:bg-[#253555] text-white text-xs font-semibold rounded-lg transition-all"
+                  className="btn-secondary text-xs"
                 >
                   Close
                 </button>

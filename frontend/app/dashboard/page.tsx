@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
+import StudentCourseCard from '@/components/StudentCourseCard';
 import {
   courseApi,
   analyticsApi,
+  assignmentApi,
   CourseWithMeta,
   StudentAnalytics,
+  TimelineItem,
 } from '@/lib/api';
 import {
   BookOpen,
@@ -24,6 +27,7 @@ import {
   Users,
   AlertCircle,
   CheckCircle,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -32,6 +36,7 @@ export default function DashboardPage() {
 
   const [courses, setCourses] = useState<CourseWithMeta[]>([]);
   const [analytics, setAnalytics] = useState<StudentAnalytics | null>(null);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modals
@@ -55,13 +60,15 @@ export default function DashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [coursesRes, analyticsRes] = await Promise.all([
+      const [coursesRes, analyticsRes, timeRes] = await Promise.all([
         courseApi.list(),
         analyticsApi.getStudentAnalytics(),
+        assignmentApi.getTimeline(),
       ]);
 
       if (coursesRes.success) setCourses(coursesRes.data.courses);
       if (analyticsRes.success) setAnalytics(analyticsRes.data.analytics);
+      if (timeRes.success) setTimeline(timeRes.data.timeline);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {
@@ -464,111 +471,9 @@ export default function DashboardPage() {
             ) : (
               /* Course Cards Grid */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {courses.map((course) => {
-                  const progressPct = course.progress !== undefined ? course.progress : 0;
-                  const materialsCount = course._count?.materials ?? 0;
-                  const quizzesCount = course._count?.quizzes ?? 0;
-
-                  return (
-                    <Link
-                      key={course.id}
-                      href={`/dashboard/courses/${course.id}`}
-                      style={{ textDecoration: 'none' }}
-                      className="app-card p-5 flex flex-col justify-between group hover:border-indigo-500/60 transition-all block"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between mb-2.5">
-                          <span
-                            style={{
-                              backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                              color: '#818CF8',
-                              border: '1px solid rgba(99, 102, 241, 0.3)',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.6rem',
-                              borderRadius: '0.375rem',
-                            }}
-                          >
-                            {course.code}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.65rem',
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '0.375rem',
-                              fontWeight: 700,
-                              textTransform: 'uppercase',
-                              backgroundColor: course.myRoleInCourse === 'PROFESSOR' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                              color: course.myRoleInCourse === 'PROFESSOR' ? '#A855F7' : '#10B981',
-                            }}
-                          >
-                            {course.myRoleInCourse}
-                          </span>
-                        </div>
-
-                        <h3
-                          style={{ color: 'var(--text-main)', fontSize: '1.05rem', fontWeight: 700 }}
-                          className="group-hover:text-indigo-400 transition-colors mb-1.5"
-                        >
-                          {course.title}
-                        </h3>
-
-                        {/* Professor display */}
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2.5">
-                          <Users className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
-                          <span className="truncate">{course.professor || 'Prof. Faculty'}</span>
-                        </div>
-
-                        {course.description && (
-                          <p
-                            style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.5 }}
-                            className="line-clamp-2 mb-3"
-                          >
-                            {course.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-3 pt-1">
-                        {/* Progress bar using real backend data */}
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-[11px]">
-                            <span style={{ color: 'var(--text-subtle)' }}>Progress</span>
-                            <span style={{ color: '#818CF8', fontWeight: 600 }}>{progressPct}% complete</span>
-                          </div>
-                          <div className="w-full bg-[#080D19] h-1.5 rounded-full overflow-hidden">
-                            <div
-                              style={{ width: `${progressPct}%` }}
-                              className="bg-indigo-500 h-full rounded-full transition-all duration-300"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Counts & Open Course Action */}
-                        <div
-                          style={{ borderTop: '1px solid var(--border-color)', color: 'var(--text-subtle)' }}
-                          className="flex items-center justify-between pt-3 text-xs"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5" title="Course Materials">
-                              <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                              <span>{materialsCount} {materialsCount === 1 ? 'Material' : 'Materials'}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5" title="Practice Quizzes">
-                              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>{quizzesCount} {quizzesCount === 1 ? 'Quiz' : 'Quizzes'}</span>
-                            </div>
-                          </div>
-
-                          <div className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all">
-                            <span>Open Course</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+                {courses.map((course) => (
+                  <StudentCourseCard key={course.id} course={course} />
+                ))}
               </div>
             )}
           </div>
@@ -650,6 +555,92 @@ export default function DashboardPage() {
               )}
             </div>
 
+            {/* Upcoming Deadlines & Assignments Card */}
+            <div className="app-card p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2
+                  style={{
+                    color: 'var(--text-main)',
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <ClipboardList className="w-4 h-4 text-indigo-400" />
+                  <span>Upcoming Assignments</span>
+                </h2>
+                <Link
+                  href="/dashboard/timeline"
+                  style={{ color: '#818CF8', textDecoration: 'none' }}
+                  className="text-xs font-semibold hover:underline"
+                >
+                  View timeline →
+                </Link>
+              </div>
+
+              {timeline.filter((t) => t.status !== 'Submitted').length > 0 ? (
+                <div className="space-y-3">
+                  {timeline
+                    .filter((t) => t.status !== 'Submitted')
+                    .slice(0, 4)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          backgroundColor: 'var(--bg-subtle)',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        className="p-3.5 rounded-xl text-xs space-y-2 hover:border-indigo-400/40 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/10 text-[11px]">
+                            {item.courseCode}
+                          </span>
+                          <span
+                            className={`text-[11px] font-semibold ${
+                              item.status === 'Overdue' ? 'text-red-400' : 'text-slate-400'
+                            }`}
+                          >
+                            {item.countdown}
+                          </span>
+                        </div>
+
+                        <h3 style={{ color: 'var(--text-main)' }} className="font-bold truncate">
+                          {item.title}
+                        </h3>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <span style={{ color: 'var(--text-subtle)' }} className="text-[11px]">
+                            Due: {item.deadlineFormatted}
+                          </span>
+                          <Link
+                            href={`/dashboard/courses/${item.courseId}?tab=assignments`}
+                            className="inline-flex items-center gap-1 font-semibold text-indigo-400 hover:text-indigo-300"
+                          >
+                            <span>Submit</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: 'var(--bg-subtle)',
+                    color: 'var(--text-muted)',
+                  }}
+                  className="p-4 rounded-xl text-center text-xs space-y-1.5"
+                >
+                  <p className="font-medium text-emerald-400 flex items-center justify-center gap-1.5">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>All caught up!</span>
+                  </p>
+                  <p className="text-[11px]">No pending course assignments due.</p>
+                </div>
+              )}
+            </div>
+
             {/* 2. Recent Activity Card */}
             <div className="app-card p-6 space-y-4">
               <h2
@@ -721,9 +712,19 @@ export default function DashboardPage() {
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
             className="w-full max-w-md border rounded-2xl p-6 shadow-2xl space-y-4"
           >
-            <h2 style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: 700 }}>
-              Create New Course
-            </h2>
+            <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <h2 style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: 700 }}>
+                Create New Course
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                style={{ color: 'var(--text-muted)' }}
+                className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleCreateCourse} className="space-y-3.5">
               <div>
                 <label style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }} className="block uppercase mb-1">
@@ -810,7 +811,8 @@ export default function DashboardPage() {
                   setEnrollSuccess(null);
                 }}
                 disabled={enrollLoading}
-                className="text-gray-400 hover:text-white p-1"
+                style={{ color: 'var(--text-muted)' }}
+                className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
               >
                 ✕
               </button>

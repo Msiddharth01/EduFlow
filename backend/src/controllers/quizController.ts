@@ -18,6 +18,7 @@ import { NotificationType } from '@prisma/client';
 export async function listQuizzes(req: AuthenticatedRequest, res: Response) {
   try {
     const courseId = req.params.courseId as string;
+    const materialId = req.query.materialId as string | undefined;
     const userId = req.user!.id;
 
     // Check course enrollment or admin
@@ -34,8 +35,13 @@ export async function listQuizzes(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({ error: 'Access denied. You are not enrolled in this course.' });
     }
 
+    const whereClause: any = { courseId };
+    if (materialId) {
+      whereClause.materialId = materialId;
+    }
+
     const quizzes: any[] = await prisma.quiz.findMany({
-      where: { courseId },
+      where: whereClause,
       include: {
         material: {
           select: {
@@ -99,6 +105,7 @@ export async function getQuizForStudent(req: AuthenticatedRequest, res: Response
             title: true,
             fileName: true,
             status: true,
+            courseId: true,
           },
         },
         questions: {
@@ -107,6 +114,8 @@ export async function getQuizForStudent(req: AuthenticatedRequest, res: Response
             questionText: true,
             options: true,
             pageReference: true,
+            questionType: true,
+            difficulty: true,
           },
         },
       },
@@ -114,6 +123,12 @@ export async function getQuizForStudent(req: AuthenticatedRequest, res: Response
 
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found.' });
+    }
+
+    // Strict Course & Material Isolation Check
+    if (quiz.material && quiz.material.courseId !== quiz.courseId) {
+      console.warn(`[QuizController] Isolation conflict detected on Quiz ${quizId}: Material belongs to ${quiz.material.courseId}, but Quiz belongs to ${quiz.courseId}`);
+      return res.status(400).json({ error: 'Course isolation error: Quiz material association is mismatched.' });
     }
 
     // Check enrollment
@@ -197,6 +212,8 @@ export async function submitQuizAttempt(req: AuthenticatedRequest, res: Response
       correctOption: number;
       explanation: string;
       questionText: string;
+      questionType?: string;
+      difficulty?: string;
     }> = [];
 
     for (const q of quiz.questions) {
@@ -212,6 +229,8 @@ export async function submitQuizAttempt(req: AuthenticatedRequest, res: Response
         correctOption: q.correctIndex,
         explanation: q.explanation,
         questionText: q.questionText,
+        questionType: q.questionType || 'CONCEPTUAL',
+        difficulty: q.difficulty || 'MEDIUM',
       });
     }
 
@@ -341,7 +360,7 @@ export async function createQuiz(req: AuthenticatedRequest, res: Response) {
 export async function generateQuiz(req: AuthenticatedRequest, res: Response) {
   try {
     const courseId = req.params.courseId as string;
-    const { materialId, questionCount = 10, force = false } = req.body;
+    const { materialId, topic, questionCount = 10, force = false } = req.body;
 
     // Check course enrollment
     const enrollment = await prisma.enrollment.findUnique({
@@ -357,9 +376,44 @@ export async function generateQuiz(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({ error: 'Access denied. You are not enrolled in this course.' });
     }
 
-    if (materialId) {
-      // Generate quiz for specific material
-      const result = await queueQuizGenerationForMaterial(courseId, materialId, questionCount, force);
+    let targetMaterialId = materialId;
+
+    // If materialId was not passed but a topic/search string was passed, locate matching material in this course
+    if (!targetMaterialId && topic && typeof topic === 'string' && topic.trim().length > 0) {
+      const matchedMat = await prisma.material.findFirst({
+        where: {
+          courseId,
+          status: 'READY',
+          OR: [
+            { title: { contains: topic.trim(), mode: 'insensitive' } },
+            { fileName: { contains: topic.trim(), mode: 'insensitive' } },
+          ],
+        },
+      });
+      if (matchedMat) {
+        targetMaterialId = matchedMat.id;
+      }
+    }
+
+    if (targetMaterialId) {
+      // Validate material belongs to this exact course
+      const material = await prisma.material.findUnique({
+        where: { id: targetMaterialId },
+        select: { id: true, courseId: true, title: true, status: true },
+      });
+
+      if (!material) {
+        return res.status(404).json({ error: 'Target material not found.' });
+      }
+
+      if (material.courseId !== courseId) {
+        return res.status(400).json({
+          error: `Course isolation violation: Material "${material.title}" does not belong to this course.`,
+        });
+      }
+
+      // Generate quiz strictly for this material
+      const result = await queueQuizGenerationForMaterial(courseId, targetMaterialId, questionCount, force);
       const quiz = await prisma.quiz.findUnique({
         where: { id: result.quizId },
         include: {
@@ -374,7 +428,7 @@ export async function generateQuiz(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // MaterialId was not provided: scan and generate for materials lacking quizzes
+    // MaterialId was not provided: scan and generate for materials lacking quizzes in this course
     const missingRes = await generateMissingQuizzesForCourse(courseId);
     if (missingRes.processedCount === 0) {
       // If all materials have quizzes, find first ready material to practice or return message

@@ -5,6 +5,7 @@ import courseRoutes from './routes/courseRoutes.js';
 import featureRoutes from './routes/featureRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 export const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/assignments', assignmentRoutes);
 app.use('/api', featureRoutes);
 
 // 404 Handler

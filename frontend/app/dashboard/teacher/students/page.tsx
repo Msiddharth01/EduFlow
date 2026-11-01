@@ -341,10 +341,20 @@ export default function TeacherStudentsPage() {
 
         {/* Student Performance Inspection Modal */}
         {selectedStudent && (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-2xl bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-color)',
+                color: 'var(--text-main)',
+              }}
+              className="w-full max-w-2xl border rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            >
               {/* Modal Header */}
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between pb-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
                 <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-sm ring-2 ring-indigo-500/30">
                     {selectedStudent.profileImage ? (
@@ -362,32 +372,34 @@ export default function TeacherStudentsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950/70 text-indigo-400 border border-indigo-800/40">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                         Student Dossier
                       </span>
                       {selectedStudent.status === 'GOOD' && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           Good Standing
                         </span>
                       )}
                       {selectedStudent.status === 'NEEDS_SUPPORT' && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                           Needs Attention
                         </span>
                       )}
                       {selectedStudent.status === 'NO_ATTEMPTS' && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                           No Attempts Yet
                         </span>
                       )}
                     </div>
-                    <h2 className="text-xl font-bold text-white mt-1">{selectedStudent.name}</h2>
-                    <p className="text-xs text-gray-400 font-mono">{selectedStudent.email}</p>
+                    <h2 className="text-xl font-bold mt-1" style={{ color: 'var(--text-main)' }}>{selectedStudent.name}</h2>
+                    <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedStudent.email}</p>
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedStudent(null)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-[#1a253d] transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -395,26 +407,26 @@ export default function TeacherStudentsPage() {
 
               {/* Summary Metrics */}
               <div className="grid grid-cols-3 gap-3 pt-2">
-                <div className="p-3 rounded-lg bg-[#080d1a] border border-[#1c2944]">
-                  <div className="text-[11px] text-gray-400">Enrolled Courses</div>
-                  <div className="text-lg font-bold text-white mt-0.5">
+                <div className="p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Enrolled Courses</div>
+                  <div className="text-lg font-bold mt-0.5" style={{ color: 'var(--text-main)' }}>
                     {(selectedStudent.enrolledCourses || selectedStudent.courses || []).length}
                   </div>
                 </div>
-                <div className="p-3 rounded-lg bg-[#080d1a] border border-[#1c2944]">
-                  <div className="text-[11px] text-gray-400">Total Quiz Attempts</div>
-                  <div className="text-lg font-bold text-white mt-0.5">
+                <div className="p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Total Quiz Attempts</div>
+                  <div className="text-lg font-bold mt-0.5" style={{ color: 'var(--text-main)' }}>
                     {selectedStudent.totalAttempts}
                   </div>
                 </div>
-                <div className="p-3 rounded-lg bg-[#080d1a] border border-[#1c2944]">
-                  <div className="text-[11px] text-gray-400">Average Score</div>
+                <div className="p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Average Score</div>
                   <div
                     className={`text-lg font-black mt-0.5 ${
                       selectedStudent.averageScore !== null && selectedStudent.averageScore >= 60
-                        ? 'text-emerald-400'
+                        ? 'text-emerald-600 dark:text-emerald-400'
                         : selectedStudent.averageScore !== null
-                        ? 'text-rose-400'
+                        ? 'text-rose-600 dark:text-rose-400'
                         : 'text-gray-400'
                     }`}
                   >
@@ -427,22 +439,24 @@ export default function TeacherStudentsPage() {
 
               {/* Enrolled Courses Details */}
               <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Enrolled Courses
                 </h3>
                 <div className="space-y-1.5">
                   {(selectedStudent.enrolledCourses || selectedStudent.courses || []).map((c) => (
                     <div
                       key={c.courseId}
-                      className="p-2.5 rounded-lg bg-[#080d1a] border border-[#1c2944] flex items-center justify-between text-xs"
+                      className="p-2.5 rounded-lg border flex items-center justify-between text-xs"
+                      style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}
                     >
                       <div>
-                        <span className="font-bold text-indigo-300 mr-2">{c.courseCode}</span>
-                        <span className="text-gray-200">{c.courseTitle}</span>
+                        <span className="font-bold mr-2" style={{ color: 'var(--primary)' }}>{c.courseCode}</span>
+                        <span style={{ color: 'var(--text-main)' }}>{c.courseTitle}</span>
                       </div>
                       <Link
                         href={`/dashboard/courses/${c.courseId}`}
-                        className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-semibold"
+                        className="inline-flex items-center gap-1 font-semibold hover:underline"
+                        style={{ color: 'var(--primary)' }}
                       >
                         <span>Open Course</span>
                         <ExternalLink className="w-3 h-3" />
@@ -454,11 +468,11 @@ export default function TeacherStudentsPage() {
 
               {/* Attempt History */}
               <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                   Verified Quiz Attempts ({(selectedStudent.attempts || []).length})
                 </h3>
                 {(!selectedStudent.attempts || selectedStudent.attempts.length === 0) ? (
-                  <div className="p-4 rounded-lg bg-[#080d1a] border border-[#1c2944] text-center text-xs text-gray-400">
+                  <div className="p-4 rounded-lg border text-center text-xs" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
                     This student has not submitted any quiz attempts yet.
                   </div>
                 ) : (
@@ -466,23 +480,24 @@ export default function TeacherStudentsPage() {
                     {selectedStudent.attempts.map((att) => (
                       <div
                         key={att.id || att.attemptId}
-                        className="p-3 rounded-lg bg-[#080d1a] border border-[#1c2944] flex items-center justify-between text-xs"
+                        className="p-3 rounded-lg border flex items-center justify-between text-xs"
+                        style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-color)' }}
                       >
                         <div>
-                          <div className="font-bold text-white flex items-center gap-2">
-                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#141d33] text-indigo-300">
+                          <div className="font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--primary)' }}>
                               {att.courseCode}
                             </span>
                             <span>{att.quizTitle}</span>
                           </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5">
+                          <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                             Submitted on {new Date(att.createdAt).toLocaleString()}
                           </div>
                         </div>
                         <div className="text-right">
                           <div
                             className={`font-black text-sm ${
-                              att.percentage >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                              att.percentage >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                             }`}
                           >
                             {att.score} / {att.maxScore} ({att.percentage}%)
@@ -496,8 +511,9 @@ export default function TeacherStudentsPage() {
 
               <div className="pt-2 flex justify-end">
                 <button
+                  type="button"
                   onClick={() => setSelectedStudent(null)}
-                  className="px-4 py-2 bg-[#1b263e] hover:bg-[#253555] text-white text-xs font-semibold rounded-lg transition-all"
+                  className="btn-secondary text-xs"
                 >
                   Close
                 </button>

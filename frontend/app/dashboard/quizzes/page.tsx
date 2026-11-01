@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
-import { courseApi, quizApi, CourseWithMeta, QuizWithMeta } from '@/lib/api';
-import { CheckCircle, BookOpen, Clock, ArrowRight, Sparkles, Plus, AlertCircle } from 'lucide-react';
+import { courseApi, quizApi, CourseWithMeta, QuizWithMeta, MaterialSummary } from '@/lib/api';
+import { CheckCircle, BookOpen, Clock, ArrowRight, Sparkles, Plus, AlertCircle, FileText } from 'lucide-react';
 
 export default function StandaloneQuizzesPage() {
   const { user, isLoading } = useAuth();
@@ -13,6 +13,8 @@ export default function StandaloneQuizzesPage() {
 
   const [courses, setCourses] = useState<CourseWithMeta[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [courseMaterials, setCourseMaterials] = useState<MaterialSummary[]>([]);
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
   const [quizzes, setQuizzes] = useState<QuizWithMeta[]>([]);
   const [loading, setLoading] = useState(false);
   const [showGenModal, setShowGenModal] = useState(false);
@@ -45,6 +47,14 @@ export default function StandaloneQuizzesPage() {
   useEffect(() => {
     if (selectedCourseId) {
       fetchQuizzes(selectedCourseId);
+      // Fetch materials for selected course to enable material-targeted quiz generation
+      courseApi.get(selectedCourseId).then((res) => {
+        if (res.success && res.data.course.materials) {
+          setCourseMaterials(res.data.course.materials.filter((m) => m.status === 'READY'));
+        } else {
+          setCourseMaterials([]);
+        }
+      });
     }
   }, [selectedCourseId]);
 
@@ -56,12 +66,15 @@ export default function StandaloneQuizzesPage() {
     setGenMsg(null);
 
     const res = await quizApi.generate(selectedCourseId, {
+      materialId: selectedMaterialId || undefined,
       topic: genTopic.trim() || undefined,
+      force: true,
     });
 
     if (res.success) {
       setGenMsg({ type: 'success', text: 'AI Practice Quiz generated successfully!' });
       setGenTopic('');
+      setSelectedMaterialId('');
       await fetchQuizzes(selectedCourseId);
       setTimeout(() => {
         setShowGenModal(false);
@@ -76,20 +89,20 @@ export default function StandaloneQuizzesPage() {
   return (
     <AppLayout>
       <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1b253b]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <CheckCircle className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+              <CheckCircle className="w-6 h-6 text-emerald-500" />
               <span>Practice Quizzes</span>
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               Attempt syllabus-aligned multiple choice questions evaluated with instant explanations.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
             <select
-              className="px-3 py-1.5 bg-[#0c1322] border border-[#1e2a44] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="app-select text-xs py-1.5 w-auto"
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
             >
@@ -105,7 +118,7 @@ export default function StandaloneQuizzesPage() {
                 setGenMsg(null);
                 setShowGenModal(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all"
+              className="btn-primary text-xs py-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Generate AI Quiz</span>
@@ -117,35 +130,48 @@ export default function StandaloneQuizzesPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-40 bg-[#0d1425] border border-[#1b263e] rounded-xl animate-pulse" />
+              <div key={i} className="h-40 app-card animate-pulse" />
             ))}
           </div>
         ) : quizzes.length === 0 ? (
-          <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-2">
-            <CheckCircle className="w-8 h-8 text-gray-500 mx-auto" />
-            <p>No practice quizzes found for this course.</p>
+          <div className="p-12 text-center app-card space-y-2">
+            <CheckCircle className="w-8 h-8 text-gray-400 mx-auto" />
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No practice quizzes found for this course.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {quizzes.map((quiz) => (
               <div
                 key={quiz.id}
-                className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between"
+                className="p-5 app-card flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                       {quiz.topic}
                     </span>
-                    <span className="text-xs text-gray-400">{quiz.questionCount} Questions</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{quiz.questionCount} Questions</span>
                   </div>
 
-                  <h3 className="text-base font-bold text-white mb-2">{quiz.title}</h3>
+                  <h3 className="text-base font-bold mb-1.5" style={{ color: 'var(--text-main)' }}>{quiz.title}</h3>
+
+                  {quiz.material?.title && (
+                    <div className="text-[11px] font-medium flex items-center gap-1.5 mb-3" style={{ color: 'var(--text-secondary)' }}>
+                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Source Material: {quiz.material.title}</span>
+                    </div>
+                  )}
 
                   {quiz.myLatestAttempt && (
-                    <div className="p-2.5 rounded bg-[#10182b] border border-[#1a263d] text-xs flex justify-between items-center mb-4">
-                      <span className="text-gray-400">Previous Score:</span>
-                      <span className="font-bold text-emerald-400">
+                    <div
+                      className="p-2.5 rounded-lg border text-xs flex justify-between items-center mb-4"
+                      style={{
+                        backgroundColor: 'var(--bg-subtle)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-muted)' }}>Previous Score:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
                         {quiz.myLatestAttempt.score}/{quiz.myLatestAttempt.maxScore} (
                         {Math.round(
                           (quiz.myLatestAttempt.score / quiz.myLatestAttempt.maxScore) * 100
@@ -170,15 +196,25 @@ export default function StandaloneQuizzesPage() {
 
       {/* Generate Quiz Modal */}
       {showGenModal && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md bg-[#0e1628] border border-[#1e2d4d] rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between">
+        <div
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-main)',
+            }}
+            className="w-full max-w-md border rounded-2xl p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-start justify-between pb-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
+                  <Sparkles className="w-5 h-5 text-indigo-500" />
                   <span>Generate Practice Quiz</span>
                 </h2>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   Synthesize syllabus-grounded multiple choice questions from authorized course materials.
                 </p>
               </div>
@@ -186,7 +222,8 @@ export default function StandaloneQuizzesPage() {
                 type="button"
                 onClick={() => setShowGenModal(false)}
                 disabled={genLoading}
-                className="text-gray-400 hover:text-white p-1"
+                style={{ color: 'var(--text-muted)' }}
+                className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
               >
                 ✕
               </button>
@@ -211,19 +248,38 @@ export default function StandaloneQuizzesPage() {
 
             <form onSubmit={handleGenerate} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
+                <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
+                  Source Material (Strict Isolation)
+                </label>
+                <select
+                  className="app-select text-xs w-full"
+                  value={selectedMaterialId}
+                  onChange={(e) => setSelectedMaterialId(e.target.value)}
+                  disabled={genLoading}
+                >
+                  <option value="">All Course Materials (Auto-Generate Missing)</option>
+                  {courseMaterials.map((mat) => (
+                    <option key={mat.id} value={mat.id}>
+                      {mat.title} ({mat.fileName})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] mt-1" style={{ color: 'var(--text-subtle)' }}>
+                  Selecting a specific document ensures questions are drawn strictly and exclusively from that material.
+                </p>
+              </div>
+
+              <div>
+                <label style={{ color: 'var(--text-muted)' }} className="block text-xs font-semibold uppercase mb-1">
                   Topic or Focus Area (Optional)
                 </label>
                 <input
-                  className="w-full px-3 py-2 bg-[#080d1a] border border-[#22304e] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. Vector Search & RAG, Algorithms, Neural Nets..."
+                  className="app-input text-xs"
+                  placeholder="e.g. Iterative Development, LIFO Stacks, Function Points..."
                   value={genTopic}
                   onChange={(e) => setGenTopic(e.target.value)}
                   disabled={genLoading}
                 />
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Leave blank to automatically sample key concepts from all uploaded course notes.
-                </p>
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -231,14 +287,14 @@ export default function StandaloneQuizzesPage() {
                   type="button"
                   onClick={() => setShowGenModal(false)}
                   disabled={genLoading}
-                  className="flex-1 py-2 text-xs font-medium text-gray-300 border border-gray-700 hover:bg-gray-800 rounded-lg transition-colors"
+                  className="btn-secondary flex-1 text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={genLoading}
-                  className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                  className="btn-primary flex-1 text-xs"
                 >
                   {genLoading ? (
                     <>

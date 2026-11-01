@@ -22,6 +22,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 var t = localStorage.getItem('learnai_theme') || 'dark';
                 document.documentElement.setAttribute('data-theme', t);
                 document.documentElement.style.colorScheme = t;
+                if (t === 'dark') {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                }
               } catch (e) {}
             })();`,
           }}

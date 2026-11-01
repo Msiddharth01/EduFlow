@@ -1,24 +1,37 @@
 @import "tailwindcss";
 
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
 :root {
-  /* Default: EduFlow Dark SaaS Palette (preserves existing dark SaaS specification) */
+  /* Default: EduFlow Dark SaaS Palette */
   --bg-main: #0B1020;
   --bg-sidebar: #080D19;
   --bg-header: #0B1020;
   --bg-card: #11182A;
   --bg-card-hover: #162038;
+  --bg-elevated: #162038;
   --bg-input: #090E1D;
   --bg-subtle: #0E1528;
+  --overlay-color: rgba(0, 0, 0, 0.75);
+
   --border-color: #263247;
   --border-subtle: #1E293B;
+
+  --text-primary: #F8FAFC;
   --text-main: #F8FAFC;
+  --text-secondary: #94A3B8;
   --text-muted: #94A3B8;
   --text-subtle: #64748B;
+
+  --primary-color: #6366F1;
   --primary: #6366F1;
   --primary-hover: #4F46E5;
   --primary-light: rgba(99, 102, 241, 0.15);
+  --success-color: #10B981;
   --success: #10B981;
+  --danger-color: #EF4444;
   --danger: #EF4444;
+  --warning-color: #F59E0B;
   --warning: #F59E0B;
   --radius: 0.875rem;
 
@@ -47,28 +60,39 @@
 }
 
 [data-theme="light"] {
-  /* Strict EduFlow Light Theme Palette (per requirements) */
+  /* Strict EduFlow Light Theme Palette */
   --bg-main: #F5F7FC;
   --bg-sidebar: #FFFFFF;
   --bg-header: #FFFFFF;
   --bg-card: #FFFFFF;
   --bg-card-hover: #F8FAFC;
+  --bg-elevated: #F8FAFC;
   --bg-input: #F8FAFC;
   --bg-subtle: #F1F5F9;
+  --overlay-color: rgba(15, 23, 42, 0.55);
+
   --border-color: #E2E8F0;
   --border-subtle: #CBD5E1;
+
+  --text-primary: #172033;
   --text-main: #172033;
+  --text-secondary: #475569;
   --text-muted: #64748B;
   --text-subtle: #94A3B8;
+
+  --primary-color: #635BEE;
   --primary: #635BEE;
   --primary-hover: #5046E5;
   --primary-light: #EEF0FF;
+  --success-color: #10B981;
   --success: #10B981;
+  --danger-color: #EF4444;
   --danger: #EF4444;
+  --warning-color: #F59E0B;
   --warning: #F59E0B;
   --radius: 0.875rem;
 
-  /* Sidebar Tokens (Light - per requirements) */
+  /* Sidebar Tokens (Light) */
   --sidebar-bg: #FFFFFF;
   --sidebar-border: #E2E8F0;
   --sidebar-text: #172033;
@@ -92,6 +116,31 @@
   color-scheme: light;
 }
 
+@theme {
+  --color-bg-main: var(--bg-main);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-header: var(--bg-header);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-input: var(--bg-input);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-overlay: var(--overlay-color);
+
+  --color-border-main: var(--border-color);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-text-main: var(--text-main);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+
+  --color-primary-main: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+}
+
 *, ::before, ::after {
   box-sizing: border-box;
 }
@@ -106,9 +155,59 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Modal Backdrops & Containers */
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--overlay-color);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.app-modal {
+  position: relative;
+  width: 100%;
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 92vh;
+}
+
+.app-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.app-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+}
+
 /* Card Surface Utilities */
 .app-card {
   background-color: var(--bg-card);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -120,6 +219,7 @@ html, body {
 
 .app-card-subtle {
   background-color: var(--bg-subtle);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: 0.625rem;
 }
@@ -128,20 +228,23 @@ html, body {
 .bg-theme-main { background-color: var(--bg-main) !important; }
 .bg-theme-sidebar { background-color: var(--sidebar-bg) !important; }
 .bg-theme-card { background-color: var(--bg-card) !important; }
+.bg-theme-elevated { background-color: var(--bg-elevated) !important; }
 .bg-theme-input { background-color: var(--bg-input) !important; }
 .bg-theme-subtle { background-color: var(--bg-subtle) !important; }
+.text-theme-primary { color: var(--text-primary) !important; }
 .text-theme-main { color: var(--text-main) !important; }
+.text-theme-secondary { color: var(--text-secondary) !important; }
 .text-theme-muted { color: var(--text-muted) !important; }
 .border-theme { border-color: var(--border-color) !important; }
 
-/* Inputs */
+/* Form Controls */
 .app-input {
   width: 100%;
   background-color: var(--bg-input);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: 0.625rem;
   padding: 0.65rem 1rem;
-  color: var(--text-main);
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -150,6 +253,120 @@ html, body {
 .app-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.app-input::placeholder {
+  color: var(--text-muted);
+}
+
+.app-textarea {
+  width: 100%;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 0.625rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  resize: vertical;
+}
+
+.app-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.app-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.app-select {
+  width: 100%;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 0.625rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.app-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.app-dropzone {
+  border: 2px dashed var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.app-dropzone:hover {
+  border-color: var(--primary);
+}
+
+/* Date/time pickers native controls */
+input[type="date"],
+input[type="time"] {
+  color-scheme: light dark;
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+/* Radio & Checkboxes */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* Tables */
+.app-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.app-th {
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background-color: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-td {
+  padding: 0.875rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .search-input {
@@ -266,7 +483,7 @@ html, body {
    all existing student and teacher pages, without affecting dark mode.
    ========================================================================= */
 
-/* Dark card and container backgrounds -> Light card (#FFFFFF) */
+/* Dark card, container, and modal backgrounds -> Light card (#FFFFFF) */
 [data-theme="light"] .bg-\[\#0d1425\],
 [data-theme="light"] .bg-\[\#0c1322\],
 [data-theme="light"] .bg-\[\#0e1628\],
@@ -291,10 +508,25 @@ html, body {
 [data-theme="light"] .bg-\[\#0b101f\],
 [data-theme="light"] .bg-\[\#0b1120\],
 [data-theme="light"] .bg-\[\#0c1220\],
+[data-theme="light"] .bg-\[\#0c1322\],
+[data-theme="light"] .bg-\[\#0d1425\],
+[data-theme="light"] .bg-\[\#0e1628\],
+[data-theme="light"] .bg-\[\#0e172a\],
 [data-theme="light"] .bg-\[\#0a0f1d\],
 [data-theme="light"] .bg-\[\#0a101d\],
+[data-theme="light"] .bg-\[\#0a0f1e\],
 [data-theme="light"] .bg-\[\#0f172a\],
 [data-theme="light"] .bg-\[\#10172a\],
+[data-theme="light"] .bg-\[\#131b2e\],
+[data-theme="light"] .bg-\[\#090f1e\],
+[data-theme="light"] .dark\:bg-\[\#0d1425\],
+[data-theme="light"] .dark\:bg-\[\#131b2e\],
+[data-theme="light"] .dark\:bg-\[\#090f1e\],
+[data-theme="light"] .dark\:bg-\[\#0a0f1e\],
+[data-theme="light"] .dark\:bg-\[\#11182A\],
+[data-theme="light"] .dark\:bg-\[\#080D19\],
+[data-theme="light"] .dark\:bg-\[\#0c1322\],
+[data-theme="light"] .dark\:bg-\[\#0e1628\],
 [data-theme="light"] .bg-slate-900,
 [data-theme="light"] .bg-gray-900 {
   background-color: var(--bg-card) !important;
@@ -309,9 +541,19 @@ html, body {
 [data-theme="light"] .hover\:bg-\[\#141d33\]:hover,
 [data-theme="light"] .hover\:bg-\[\#1a2642\]:hover,
 [data-theme="light"] .hover\:bg-\[\#0d1425\]:hover,
+[data-theme="light"] .hover\:bg-\[\#131b2e\]:hover,
+[data-theme="light"] .hover\:bg-\[\#1b263e\]:hover,
+[data-theme="light"] .hover\:bg-\[\#090f1e\]:hover,
+[data-theme="light"] .dark\:hover\:bg-\[\#1b263e\]:hover,
+[data-theme="light"] .dark\:hover\:bg-\[\#131b2e\]:hover,
+[data-theme="light"] .dark\:hover\:bg-slate-800:hover,
 [data-theme="light"] .hover\:bg-gray-800:hover,
 [data-theme="light"] .hover\:bg-slate-800:hover {
   background-color: var(--bg-card-hover) !important;
+}
+
+[data-theme="light"] .dark\:hover\:text-white:hover {
+  color: var(--text-main) !important;
 }
 
 /* Inputs, textareas, and select elements -> #F8FAFC, border #CBD5E1 */
@@ -375,7 +617,11 @@ html, body {
 [data-theme="light"] .border-slate-700,
 [data-theme="light"] .border-slate-800,
 [data-theme="light"] .border-indigo-900\/30,
-[data-theme="light"] .border-indigo-900\/40 {
+[data-theme="light"] .border-indigo-900\/40,
+[data-theme="light"] .dark\:border-\[\#1b263e\],
+[data-theme="light"] .dark\:border-slate-700,
+[data-theme="light"] .dark\:border-slate-800,
+[data-theme="light"] .dark\:border-gray-700 {
   border-color: var(--border-color) !important;
 }
 
@@ -397,6 +643,19 @@ html, body {
 [data-theme="light"] h5.text-white,
 [data-theme="light"] h6.text-white {
   color: var(--text-main) !important;
+}
+
+/* Dark text classes when in Light Mode */
+[data-theme="light"] .dark\:text-white,
+[data-theme="light"] .dark\:text-slate-100,
+[data-theme="light"] .dark\:text-slate-200,
+[data-theme="light"] .dark\:text-slate-300 {
+  color: var(--text-main) !important;
+}
+
+[data-theme="light"] .dark\:text-slate-400,
+[data-theme="light"] .dark\:text-slate-500 {
+  color: var(--text-muted) !important;
 }
 
 /* Text-white on non-button, non-colored badge elements */
