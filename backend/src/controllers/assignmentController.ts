@@ -14,6 +14,15 @@ import {
   notifyCourseProfessors,
 } from '../services/notificationService.js';
 import { NotificationType, Role } from '@prisma/client';
+import {
+  uploadPdfToStorage,
+  deletePdfFromStorage,
+  streamPdfToResponse,
+  generateAssignmentAttachmentKey,
+  generateSubmissionKey,
+  isSupabaseConfigured,
+  DEFAULT_BUCKET,
+} from '../services/supabaseStorageService.js';
 
 // Setup upload directories
 const baseUploadDir = path.resolve(process.cwd(), 'uploads');
@@ -162,6 +171,34 @@ export async function createAssignment(req: AuthenticatedRequest, res: Response)
       allowLateSubmission === '1';
 
     const attachmentPath = file ? path.relative(baseUploadDir, file.path) : null;
+    let attachmentKey: string | null = null;
+    let storageBucket: string | null = null;
+
+    if (file && isSupabaseConfigured()) {
+      try {
+        const fileBuffer = fs.readFileSync(file.path);
+        attachmentKey = generateAssignmentAttachmentKey(courseId, file.originalname);
+        storageBucket = DEFAULT_BUCKET;
+        const uploadResult = await uploadPdfToStorage(fileBuffer, attachmentKey, {
+          bucket: storageBucket,
+          contentType: 'application/pdf',
+          metadata: {
+            courseId,
+            professorId: req.user!.id,
+            originalName: file.originalname,
+          },
+        });
+        if (!uploadResult.success) {
+          console.warn(`[Assignment] Supabase attachment upload failed: ${uploadResult.error}`);
+          attachmentKey = null;
+          storageBucket = null;
+        } else {
+          console.log(`[Assignment] Synced attachment '${file.originalname}' to Supabase: ${attachmentKey}`);
+        }
+      } catch (err) {
+        console.warn(`[Assignment] Supabase attachment exception:`, err);
+      }
+    }
 
     const assignment = await prisma.assignment.create({
       data: {
@@ -175,6 +212,8 @@ export async function createAssignment(req: AuthenticatedRequest, res: Response)
         attachmentPath,
         attachmentName: file ? file.originalname : null,
         attachmentSize: file ? file.size : null,
+        attachmentKey,
+        storageBucket,
       },
       include: {
         course: { select: { id: true, code: true, title: true } },
@@ -251,18 +290,50 @@ export async function updateAssignment(req: AuthenticatedRequest, res: Response)
     let newAttachmentPath = existing.attachmentPath;
     let newAttachmentName = existing.attachmentName;
     let newAttachmentSize = existing.attachmentSize;
+    let newAttachmentKey = (existing as any).attachmentKey || null;
+    let newStorageBucket = (existing as any).storageBucket || null;
 
     if (file) {
-      // Remove old attachment if exists
+      // Remove old attachment if exists on local disk
       if (existing.attachmentPath) {
         const oldFile = path.resolve(baseUploadDir, existing.attachmentPath);
         if (fs.existsSync(oldFile)) {
           fs.unlinkSync(oldFile);
         }
       }
+
+      // Remove old attachment from Supabase if exists
+      if ((existing as any).attachmentKey && isSupabaseConfigured()) {
+        try {
+          await deletePdfFromStorage((existing as any).attachmentKey, (existing as any).storageBucket || DEFAULT_BUCKET);
+        } catch (e) {
+          console.warn('[Assignment] Could not remove old attachment from Supabase:', e);
+        }
+      }
+
       newAttachmentPath = path.relative(baseUploadDir, file.path);
       newAttachmentName = file.originalname;
       newAttachmentSize = file.size;
+
+      // Upload replacement to Supabase
+      if (isSupabaseConfigured()) {
+        try {
+          const fileBuffer = fs.readFileSync(file.path);
+          newAttachmentKey = generateAssignmentAttachmentKey(existing.courseId, file.originalname);
+          newStorageBucket = DEFAULT_BUCKET;
+          await uploadPdfToStorage(fileBuffer, newAttachmentKey, {
+            bucket: newStorageBucket,
+            contentType: 'application/pdf',
+            metadata: {
+              courseId: existing.courseId,
+              assignmentId,
+              originalName: file.originalname,
+            },
+          });
+        } catch (uploadErr) {
+          console.warn('[Assignment] Supabase update attachment error:', uploadErr);
+        }
+      }
     }
 
     const newStatus = status ? (status === 'DRAFT' ? 'DRAFT' : 'PUBLISHED') : existing.status;
@@ -285,6 +356,8 @@ export async function updateAssignment(req: AuthenticatedRequest, res: Response)
         attachmentPath: newAttachmentPath,
         attachmentName: newAttachmentName,
         attachmentSize: newAttachmentSize,
+        attachmentKey: newAttachmentKey,
+        storageBucket: newStorageBucket,
       },
       include: {
         course: { select: { id: true, code: true, title: true } },
@@ -346,7 +419,15 @@ export async function deleteAssignment(req: AuthenticatedRequest, res: Response)
       return res.status(403).json({ error: 'Only course professors can delete this assignment.' });
     }
 
-    // Clean up attachment file
+    // Clean up attachment file from Supabase & disk
+    if ((assignment as any).attachmentKey && isSupabaseConfigured()) {
+      try {
+        await deletePdfFromStorage((assignment as any).attachmentKey, (assignment as any).storageBucket || DEFAULT_BUCKET);
+      } catch (e) {
+        console.warn('[Assignment] Could not remove attachment from Supabase:', e);
+      }
+    }
+
     if (assignment.attachmentPath) {
       const fullPath = path.resolve(baseUploadDir, assignment.attachmentPath);
       if (fs.existsSync(fullPath)) {
@@ -358,8 +439,16 @@ export async function deleteAssignment(req: AuthenticatedRequest, res: Response)
       }
     }
 
-    // Clean up submission files
+    // Clean up submission files from Supabase & disk
     for (const sub of assignment.submissions) {
+      if ((sub as any).storageKey && isSupabaseConfigured()) {
+        try {
+          await deletePdfFromStorage((sub as any).storageKey, (sub as any).storageBucket || DEFAULT_BUCKET);
+        } catch (e) {
+          console.warn('[Assignment] Could not remove submission from Supabase:', e);
+        }
+      }
+
       if (sub.filePath) {
         const subPath = path.resolve(baseUploadDir, sub.filePath);
         if (fs.existsSync(subPath)) {
@@ -797,6 +886,34 @@ export async function submitAssignment(req: AuthenticatedRequest, res: Response)
     }
 
     const relativePath = path.relative(baseUploadDir, file.path);
+    let storageKey: string | null = null;
+    let storageBucket: string | null = null;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const fileBuffer = fs.readFileSync(file.path);
+        storageKey = generateSubmissionKey(assignmentId, studentId, file.originalname);
+        storageBucket = DEFAULT_BUCKET;
+        const uploadResult = await uploadPdfToStorage(fileBuffer, storageKey, {
+          bucket: storageBucket,
+          contentType: 'application/pdf',
+          metadata: {
+            assignmentId,
+            studentId,
+            originalName: file.originalname,
+          },
+        });
+        if (!uploadResult.success) {
+          console.warn(`[Assignment] Supabase submission upload failed: ${uploadResult.error}`);
+          storageKey = null;
+          storageBucket = null;
+        } else {
+          console.log(`[Assignment] Student submission synced to Supabase: ${storageKey}`);
+        }
+      } catch (err) {
+        console.warn(`[Assignment] Supabase submission upload exception:`, err);
+      }
+    }
 
     // Check for existing submission to support resubmission
     const existingSubmission = await prisma.assignmentSubmission.findUnique({
@@ -812,15 +929,24 @@ export async function submitAssignment(req: AuthenticatedRequest, res: Response)
     const isResubmission = !!existingSubmission;
 
     if (existingSubmission) {
-      // Clean up previously submitted file
+      // Clean up previously submitted file on local disk
       if (existingSubmission.filePath) {
         const oldFile = path.resolve(baseUploadDir, existingSubmission.filePath);
         if (fs.existsSync(oldFile)) {
           try {
             fs.unlinkSync(oldFile);
           } catch (e) {
-            console.warn('[Assignment] Failed to delete old submission file:', e);
+            console.warn('[Assignment] Failed to delete old submission file on disk:', e);
           }
+        }
+      }
+
+      // Clean up old submission from Supabase
+      if ((existingSubmission as any).storageKey && isSupabaseConfigured()) {
+        try {
+          await deletePdfFromStorage((existingSubmission as any).storageKey, (existingSubmission as any).storageBucket || DEFAULT_BUCKET);
+        } catch (e) {
+          console.warn('[Assignment] Failed to delete old submission from Supabase:', e);
         }
       }
 
@@ -830,6 +956,8 @@ export async function submitAssignment(req: AuthenticatedRequest, res: Response)
           filePath: relativePath,
           originalFileName: file.originalname,
           fileSize: file.size,
+          storageKey,
+          storageBucket,
           submittedAt: serverTimestamp,
           status: timing.isLate ? 'LATE' : 'RESUBMITTED',
           isLate: timing.isLate,
@@ -844,6 +972,8 @@ export async function submitAssignment(req: AuthenticatedRequest, res: Response)
           filePath: relativePath,
           originalFileName: file.originalname,
           fileSize: file.size,
+          storageKey,
+          storageBucket,
           submittedAt: serverTimestamp,
           status: timing.isLate ? 'LATE' : 'SUBMITTED',
           isLate: timing.isLate,
@@ -907,7 +1037,7 @@ export async function serveAssignmentAttachment(req: AuthenticatedRequest, res: 
       },
     });
 
-    if (!assignment || !assignment.attachmentPath) {
+    if (!assignment || (!assignment.attachmentPath && !(assignment as any).attachmentKey)) {
       return res.status(404).json({ error: 'Attachment not found.' });
     }
 
@@ -916,15 +1046,14 @@ export async function serveAssignmentAttachment(req: AuthenticatedRequest, res: 
       return res.status(403).json({ error: 'Access denied. You are not enrolled in this course.' });
     }
 
-    const fullPath = path.resolve(baseUploadDir, assignment.attachmentPath);
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'Attachment file on disk not found.' });
-    }
-
     const safeFilename = assignment.attachmentName || 'assignment-reference.pdf';
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
-    fs.createReadStream(fullPath).pipe(res);
+    await streamPdfToResponse({
+      res,
+      storageKey: (assignment as any).attachmentKey,
+      storageBucket: (assignment as any).storageBucket,
+      fallbackLocalPath: assignment.attachmentPath,
+      downloadFileName: safeFilename,
+    });
   } catch (error: any) {
     console.error('[Assignment] Stream attachment error:', error);
     res.status(500).json({ error: 'Failed to stream attachment file.' });
@@ -971,15 +1100,14 @@ export async function serveSubmissionFile(req: AuthenticatedRequest, res: Respon
         .json({ error: 'Access denied. You are not authorized to view this submission.' });
     }
 
-    const fullPath = path.resolve(baseUploadDir, submission.filePath);
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'Submitted file on disk not found.' });
-    }
-
     const safeFilename = submission.originalFileName || 'submission.pdf';
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
-    fs.createReadStream(fullPath).pipe(res);
+    await streamPdfToResponse({
+      res,
+      storageKey: (submission as any).storageKey,
+      storageBucket: (submission as any).storageBucket,
+      fallbackLocalPath: submission.filePath,
+      downloadFileName: safeFilename,
+    });
   } catch (error: any) {
     console.error('[Assignment] Stream submission error:', error);
     res.status(500).json({ error: 'Failed to stream submission file.' });
