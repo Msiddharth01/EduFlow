@@ -11,11 +11,19 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
-  "keywords": ["rag", "ollama", "pgvector", "prisma", "express", "ai-tutor"],
+  "keywords": [
+    "rag",
+    "ollama",
+    "pgvector",
+    "prisma",
+    "express",
+    "ai-tutor"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.21.1",
+    "@supabase/supabase-js": "^2.118.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

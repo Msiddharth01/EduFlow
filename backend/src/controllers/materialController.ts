@@ -56,6 +56,14 @@ import { extractDocumentWithQuality, extractTextWithOcr } from '../services/ocrS
 import { queueQuizGenerationForMaterial } from '../services/quizGeneratorService.js';
 import { notifyEnrolledStudents } from '../services/notificationService.js';
 import { NotificationType } from '@prisma/client';
+import {
+  uploadPdfToStorage,
+  downloadPdfFromStorage,
+  streamPdfToResponse,
+  generateMaterialKey,
+  isSupabaseConfigured,
+  DEFAULT_BUCKET,
+} from '../services/supabaseStorageService.js';
 
 export async function uploadMaterial(req: AuthenticatedRequest, res: Response) {
   try {
@@ -90,6 +98,39 @@ export async function uploadMaterial(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({ error: 'Only course professors can upload materials.' });
     }
 
+    // If Supabase Storage is configured, upload to bucket
+    let storageKey: string | null = null;
+    let storageBucket: string | null = null;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const fileBuffer = fs.readFileSync(file.path);
+        storageKey = generateMaterialKey(courseId, file.originalname);
+        storageBucket = DEFAULT_BUCKET;
+        const uploadResult = await uploadPdfToStorage(fileBuffer, storageKey, {
+          bucket: storageBucket,
+          contentType: 'application/pdf',
+          metadata: {
+            courseId,
+            uploaderId: req.user!.id,
+            originalName: file.originalname,
+          },
+        });
+
+        if (!uploadResult.success) {
+          console.warn(`[MaterialUpload] Supabase upload failed, falling back to local storage: ${uploadResult.error}`);
+          storageKey = null;
+          storageBucket = null;
+        } else {
+          console.log(`[MaterialUpload] Synced material '${file.originalname}' to Supabase Storage: ${storageKey}`);
+        }
+      } catch (uploadErr: any) {
+        console.warn(`[MaterialUpload] Supabase upload exception:`, uploadErr);
+        storageKey = null;
+        storageBucket = null;
+      }
+    }
+
     // Create material record
     const material = await prisma.material.create({
       data: {
@@ -99,6 +140,8 @@ export async function uploadMaterial(req: AuthenticatedRequest, res: Response) {
         fileName: file.originalname,
         filePath: file.filename,
         fileSize: file.size,
+        storageKey,
+        storageBucket,
         status: 'PROCESSING',
       },
     });
@@ -157,9 +200,20 @@ export async function retryMaterialProcessing(req: AuthenticatedRequest, res: Re
       return res.status(403).json({ error: 'Only course professors can reprocess materials.' });
     }
 
-    const fullPath = path.resolve(uploadDir, material.filePath);
+    let fullPath = path.resolve(uploadDir, material.filePath);
     if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'Underlying document file on disk not found.' });
+      if (material.storageKey && isSupabaseConfigured()) {
+        console.log(`[MaterialRetry] Local file missing, fetching '${material.storageKey}' from Supabase Storage...`);
+        const downloaded = await downloadPdfFromStorage(material.storageKey, material.storageBucket || DEFAULT_BUCKET);
+        if (downloaded.success && downloaded.data) {
+          fs.writeFileSync(fullPath, downloaded.data);
+          console.log(`[MaterialRetry] Restored file from Supabase to '${fullPath}' for OCR processing.`);
+        } else {
+          return res.status(404).json({ error: 'Underlying document file could not be retrieved from storage or disk.' });
+        }
+      } else {
+        return res.status(404).json({ error: 'Underlying document file on disk not found.' });
+      }
     }
 
     // Clear any stale chunks and cached summaries
@@ -359,17 +413,14 @@ export async function serveMaterialFile(req: AuthenticatedRequest, res: Response
       return res.status(403).json({ error: 'Access denied. You are not enrolled in this course.' });
     }
 
-    const fullPath = path.resolve(uploadDir, material.filePath);
-    if (!fs.existsSync(fullPath)) {
-      console.error(`[MaterialDelivery] File missing on disk for material ${materialId} at ${fullPath}.`);
-      return res.status(404).json({ error: 'File on disk not found.' });
-    }
-
-    console.log(`[MaterialDelivery] Streaming PDF '${material.fileName}' (${material.fileSize} bytes) to user ${req.user!.email}.`);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${material.fileName}"`);
-    const stream = fs.createReadStream(fullPath);
-    stream.pipe(res);
+    console.log(`[MaterialDelivery] Serving PDF '${material.fileName}' to user ${req.user!.email}.`);
+    await streamPdfToResponse({
+      res,
+      storageKey: material.storageKey,
+      storageBucket: material.storageBucket,
+      fallbackLocalPath: material.filePath,
+      downloadFileName: material.fileName,
+    });
   } catch (error: any) {
     console.error('[MaterialDelivery] Serve material error:', error);
     res.status(500).json({ error: 'Failed to stream PDF file.' });

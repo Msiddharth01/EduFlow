@@ -5,6 +5,7 @@ import { prisma } from '../config/db.js';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 import { notifyCourseProfessors, notifyEnrolledStudents } from '../services/notificationService.js';
 import { NotificationType } from '@prisma/client';
+import { deletePdfFromStorage, isSupabaseConfigured, DEFAULT_BUCKET } from '../services/supabaseStorageService.js';
 
 export async function createCourse(req: AuthenticatedRequest, res: Response) {
   try {
@@ -390,9 +391,18 @@ export async function deleteCourse(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({ error: 'Forbidden: Only the course professor or admin can delete this course.' });
     }
 
-    // Clean up uploaded files associated with this course from disk safely
+    // Clean up uploaded files associated with this course from Supabase Storage and disk safely
     const uploadDir = path.resolve(process.cwd(), 'uploads');
     for (const mat of course.materials) {
+      if ((mat as any).storageKey && isSupabaseConfigured()) {
+        try {
+          await deletePdfFromStorage((mat as any).storageKey, (mat as any).storageBucket || DEFAULT_BUCKET);
+          console.log(`[DeleteCourse] Removed Supabase object '${(mat as any).storageKey}' for material '${mat.fileName}'`);
+        } catch (storageErr) {
+          console.warn(`[DeleteCourse] Could not delete Supabase object (${(mat as any).storageKey}):`, storageErr);
+        }
+      }
+
       if (mat.filePath) {
         try {
           const fullPath = path.resolve(uploadDir, mat.filePath);

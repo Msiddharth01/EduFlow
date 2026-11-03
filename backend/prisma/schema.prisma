@@ -124,6 +124,8 @@ model Material {
   fileName     String
   filePath     String
   fileSize     Int?
+  storageBucket String?          @default("eduflow-pdfs")
+  storageKey   String?
   status       ProcessingStatus @default(PENDING)
   errorMessage String?
   course       Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -223,6 +225,8 @@ model Assignment {
   attachmentPath      String?
   attachmentName      String?
   attachmentSize      Int?
+  storageBucket       String?                @default("eduflow-pdfs")
+  attachmentKey       String?
   deadline            DateTime
   status              AssignmentStatus       @default(PUBLISHED)
   allowLateSubmission Boolean                @default(false)
@@ -243,6 +247,8 @@ model AssignmentSubmission {
   filePath          String
   originalFileName  String
   fileSize          Int?
+  storageBucket     String?          @default("eduflow-pdfs")
+  storageKey        String?
   submittedAt       DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   status            SubmissionStatus @default(SUBMITTED)
