@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppLayout from '@/components/AppLayout';
+import CoursePatternBanner from '@/components/CoursePatternBanner';
 import { teacherApi, courseApi, assignmentApi, TeacherDashboardData, TeacherWeakTopicItem, TeacherCourseOverviewItem, TimelineItem } from '@/lib/api';
 import {
   Users,
@@ -217,16 +218,16 @@ export default function TeacherDashboardPage() {
     <AppLayout>
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
         {/* Header with Title and Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1b253b]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+              <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                 Professor Workspace
               </span>
-              <span className="text-xs text-gray-400">· {user?.name}</span>
+              <span className="text-xs text-[var(--text-muted)]">· {user?.name}</span>
             </div>
-            <h1 className="text-2xl font-black text-white mt-1">Instructor Analytics & Course Control</h1>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h1 className="text-2xl font-black text-[var(--text-main)] mt-1">Instructor Analytics & Course Control</h1>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               Live monitoring of student mastery, material indexing, quiz outcomes, and identified learning gaps.
             </p>
           </div>
@@ -235,7 +236,7 @@ export default function TeacherDashboardPage() {
             <button
               onClick={loadDashboard}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#162139] hover:bg-[#1e2d4e] border border-[#243456] text-gray-300 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-main)] rounded-lg text-xs font-medium transition-colors cursor-pointer"
               title="Refresh dashboard metrics"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
@@ -244,7 +245,7 @@ export default function TeacherDashboardPage() {
 
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+              className="btn-primary text-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create Course</span>
@@ -257,12 +258,12 @@ export default function TeacherDashboardPage() {
           <div
             className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
               actionMsg.type === 'success'
-                ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300'
-                : 'bg-rose-950/40 border-rose-800/40 text-rose-300'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
             }`}
           >
             <span>{actionMsg.text}</span>
-            <button onClick={() => setActionMsg(null)} className="text-gray-400 hover:text-white text-xs">
+            <button onClick={() => setActionMsg(null)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs cursor-pointer">
               ✕
             </button>
           </div>
@@ -271,70 +272,70 @@ export default function TeacherDashboardPage() {
         {/* SECTION 1: TOP SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Enrolled Students */}
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between">
+          <div className="p-5 rounded-2xl app-card flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Students</span>
-              <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-800/40 text-indigo-400">
+              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Total Students</span>
+              <div className="p-2 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                 <Users className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <div className="text-3xl font-black text-white">{summary.totalStudents}</div>
-              <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+              <div className="text-3xl font-black text-[var(--text-main)]">{summary.totalStudents}</div>
+              <div className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-1">
                 <span>Across {summary.totalCourses} course{summary.totalCourses === 1 ? '' : 's'}</span>
               </div>
             </div>
           </div>
 
           {/* Card 2: Average Quiz Score */}
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between">
+          <div className="p-5 rounded-2xl app-card flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Class Average Score</span>
-              <div className="p-2 rounded-xl bg-emerald-950/70 border border-emerald-800/40 text-emerald-400">
+              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Class Average Score</span>
+              <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <div className="text-3xl font-black text-white">
+              <div className="text-3xl font-black text-[var(--text-main)]">
                 {summary.averageQuizScore}%
               </div>
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-[var(--text-muted)] mt-1">
                 From {summary.totalAttempts} verified student submission{summary.totalAttempts === 1 ? '' : 's'}
               </div>
             </div>
           </div>
 
           {/* Card 3: Students Needing Support */}
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between">
+          <div className="p-5 rounded-2xl app-card flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Needs Attention</span>
-              <div className="p-2 rounded-xl bg-rose-950/70 border border-rose-800/40 text-rose-400">
+              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Needs Attention</span>
+              <div className="p-2 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <div className="text-3xl font-black text-rose-400">
+              <div className="text-3xl font-black text-rose-600 dark:text-rose-400">
                 {summary.studentsNeedingSupportCount}
               </div>
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-[var(--text-muted)] mt-1">
                 Scoring below 60% on quiz attempts
               </div>
             </div>
           </div>
 
           {/* Card 4: Total Materials & Quizzes */}
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between">
+          <div className="p-5 rounded-2xl app-card flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Course Assets</span>
-              <div className="p-2 rounded-xl bg-violet-950/70 border border-violet-800/40 text-violet-400">
+              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Course Assets</span>
+              <div className="p-2 rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/30">
                 <Layers className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <div className="text-3xl font-black text-white">
-                {summary.totalMaterials} <span className="text-sm font-normal text-gray-400">/</span> {summary.totalQuizzes}
+              <div className="text-3xl font-black text-[var(--text-main)]">
+                {summary.totalMaterials} <span className="text-sm font-normal text-[var(--text-muted)]">/</span> {summary.totalQuizzes}
               </div>
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-[var(--text-muted)] mt-1">
                 {summary.totalMaterials} Lecture PDFs · {summary.totalQuizzes} Active Quizzes
               </div>
             </div>
@@ -342,8 +343,8 @@ export default function TeacherDashboardPage() {
         </div>
 
         {/* Calculation details notice */}
-        <div className="px-4 py-2.5 rounded-xl bg-[#0c1220] border border-[#172238] flex items-center gap-2.5 text-xs text-gray-400">
-          <HelpCircle className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+        <div className="px-4 py-2.5 rounded-xl app-card-subtle flex items-center gap-2.5 text-xs text-[var(--text-muted)]">
+          <HelpCircle className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
           <span>
             <strong>Calculation Method:</strong> Class Average Score is calculated from actual server-evaluated points scored divided by total available points. Students with zero quiz attempts are categorized separately as &quot;No Attempts&quot; rather than marked as failing.
           </span>
@@ -353,23 +354,23 @@ export default function TeacherDashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[var(--primary)]" />
                 <span>My Active Courses ({courses.length})</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Courses you manage, teach, and provide AI learning materials for.
               </p>
             </div>
           </div>
 
           {courses.length === 0 ? (
-            <div className="p-8 text-center bg-[#0d1425] border border-[#1b263e] rounded-2xl text-xs text-gray-400 space-y-3">
-              <BookOpen className="w-8 h-8 text-gray-500 mx-auto" />
+            <div className="p-8 text-center app-card rounded-2xl text-xs text-[var(--text-muted)] space-y-3">
+              <BookOpen className="w-8 h-8 opacity-40 mx-auto" />
               <p>You have not created any courses yet.</p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                className="btn-primary text-xs cursor-pointer"
               >
                 Create First Course
               </button>
@@ -379,21 +380,41 @@ export default function TeacherDashboardPage() {
               {courses.map((course) => (
                 <div
                   key={course.id}
-                  className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between hover:border-[#2b3d63] transition-all"
+                  className="rounded-2xl app-card overflow-hidden flex flex-col justify-between hover:shadow-md transition-all"
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-extrabold px-2.5 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/40">
+                  {/* Top Geometric Artwork Banner */}
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <CoursePatternBanner
+                      courseId={course.id}
+                      courseCode={course.code}
+                      title={course.title}
+                    />
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
+                      <span
+                        className="text-xs font-bold px-2.5 py-1 rounded backdrop-blur-md shadow-xs border text-white tracking-wider uppercase"
+                        style={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.72)',
+                          borderColor: 'rgba(255, 255, 255, 0.25)',
+                        }}
+                      >
                         {course.code}
                       </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 font-medium">
-                          {course.classAverage !== null ? (
-                            <span className="text-emerald-400 font-bold">Avg: {course.classAverage}%</span>
-                          ) : (
-                            <span className="text-gray-500">No attempts yet</span>
-                          )}
-                        </span>
+                      <span
+                        className="text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-md shadow-xs border text-white"
+                        style={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.72)',
+                          borderColor: 'rgba(255, 255, 255, 0.25)',
+                        }}
+                      >
+                        {course.classAverage !== null ? `Avg: ${course.classAverage}%` : 'New'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <h3 className="text-base font-bold text-[var(--text-main)]">{course.title}</h3>
 
                         {/* Course Card Three-dot Menu */}
                         <div className="relative">
@@ -402,7 +423,7 @@ export default function TeacherDashboardPage() {
                               e.stopPropagation();
                               setActiveCourseMenuId(activeCourseMenuId === course.id ? null : course.id);
                             }}
-                            className="p-1 rounded text-gray-400 hover:text-white hover:bg-[#1b2742] transition-colors cursor-pointer"
+                            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer"
                             title="Course options"
                             aria-label="Course options"
                           >
@@ -420,10 +441,10 @@ export default function TeacherDashboardPage() {
                             >
                               <button
                                 onClick={() => handleOpenEditCourse(course)}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium hover:bg-indigo-500/10 text-left transition-colors cursor-pointer"
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium hover:bg-[var(--primary-light)] text-left transition-colors cursor-pointer"
                                 style={{ color: 'var(--text-main)' }}
                               >
-                                <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
+                                <Edit3 className="w-3.5 h-3.5 text-[var(--primary)]" />
                                 <span>Edit Course</span>
                               </button>
                               <div className="h-px my-1" style={{ backgroundColor: 'var(--border-color)' }} />
@@ -433,74 +454,73 @@ export default function TeacherDashboardPage() {
                                   setDeleteError(null);
                                   setActiveCourseMenuId(null);
                                 }}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/10 text-left transition-colors cursor-pointer"
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10 text-left transition-colors cursor-pointer"
                               >
-                                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
                                 <span>Delete Course</span>
                               </button>
                             </div>
                           )}
                         </div>
                       </div>
+
+                      {course.description && (
+                        <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3 leading-relaxed">
+                          {course.description}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-[var(--border-subtle)] my-3 text-center">
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text-main)]">{course.enrollmentCount}</div>
+                          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Students</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text-main)]">{course.materialCount}</div>
+                          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Materials</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text-main)]">{course.quizCount}</div>
+                          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Quizzes</div>
+                        </div>
+                      </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-white mb-1.5">{course.title}</h3>
-                    {course.description && (
-                      <p className="text-xs text-gray-400 line-clamp-2 mb-3 leading-relaxed">
-                        {course.description}
-                      </p>
-                    )}
+                    <div className="space-y-2 pt-2">
+                      <Link
+                        href={`/dashboard/courses/${course.id}`}
+                        className="btn-primary w-full text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Open Workspace</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
 
-                    <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-[#18233a] my-3 text-center">
-                      <div>
-                        <div className="text-sm font-bold text-white">{course.enrollmentCount}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Students</div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        <Link
+                          href={`/dashboard/courses/${course.id}?tab=materials`}
+                          className="py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded text-[11px] font-medium text-center border border-[var(--border-color)] transition-colors"
+                        >
+                          Materials
+                        </Link>
+                        <Link
+                          href={`/dashboard/courses/${course.id}?tab=assignments`}
+                          className="py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded text-[11px] font-medium text-center border border-[var(--border-color)] transition-colors"
+                        >
+                          Tasks
+                        </Link>
+                        <Link
+                          href={`/dashboard/teacher/students?course=${course.id}`}
+                          className="py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded text-[11px] font-medium text-center border border-[var(--border-color)] transition-colors"
+                        >
+                          Roster
+                        </Link>
+                        <Link
+                          href={`/dashboard/teacher/quizzes?course=${course.id}`}
+                          className="py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded text-[11px] font-medium text-center border border-[var(--border-color)] transition-colors"
+                        >
+                          Quizzes
+                        </Link>
                       </div>
-                      <div>
-                        <div className="text-sm font-bold text-white">{course.materialCount}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Materials</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-white">{course.quizCount}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Quizzes</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2">
-                    <Link
-                      href={`/dashboard/courses/${course.id}`}
-                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <span>Open Workspace</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-
-                    <div className="grid grid-cols-4 gap-1.5">
-                      <Link
-                        href={`/dashboard/courses/${course.id}?tab=materials`}
-                        className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
-                      >
-                        Materials
-                      </Link>
-                      <Link
-                        href={`/dashboard/courses/${course.id}?tab=assignments`}
-                        className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-indigo-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
-                      >
-                        Tasks
-                      </Link>
-                      <Link
-                        href={`/dashboard/teacher/students?course=${course.id}`}
-                        className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
-                      >
-                        Roster
-                      </Link>
-                      <Link
-                        href={`/dashboard/teacher/quizzes?course=${course.id}`}
-                        className="py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-300 hover:text-white rounded text-[11px] font-medium text-center border border-[#1f2c4a] transition-colors"
-                      >
-                        Quizzes
-                      </Link>
                     </div>
                   </div>
                 </div>
@@ -513,17 +533,17 @@ export default function TeacherDashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-[var(--primary)]" />
                 <span>Assignment Deadlines & Submission Progress</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Real-time tracking of coursework deadlines, submission rates, and recent student hand-ins.
               </p>
             </div>
             <Link
               href="/dashboard/teacher/assignments"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+              className="text-xs text-[var(--primary)] hover:opacity-80 font-semibold flex items-center gap-1"
             >
               <span>Manage Assignments</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -531,12 +551,12 @@ export default function TeacherDashboardPage() {
           </div>
 
           {timeline.length === 0 ? (
-            <div className="p-8 text-center bg-[#0d1425] border border-[#1b263e] rounded-2xl text-xs text-gray-400 space-y-2">
-              <ClipboardList className="w-8 h-8 text-indigo-400 mx-auto" />
+            <div className="p-8 text-center app-card rounded-2xl text-xs text-[var(--text-muted)] space-y-2">
+              <ClipboardList className="w-8 h-8 text-[var(--primary)] mx-auto opacity-50" />
               <p>No assignments created yet. Create assignments inside your courses to track submissions.</p>
               <Link
                 href="/dashboard/teacher/assignments"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors mt-1"
+                className="btn-primary text-xs font-semibold inline-flex items-center gap-1.5 mt-1"
               >
                 <span>Create Assignment</span>
               </Link>
@@ -551,54 +571,54 @@ export default function TeacherDashboardPage() {
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-3 flex flex-col justify-between"
+                    className="p-5 rounded-2xl app-card space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                           {item.courseCode}
                         </span>
                         <span
                           className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                             item.timelineStatus === 'Overdue'
-                              ? 'bg-red-950/60 text-red-400 border border-red-800/40'
+                              ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                               : item.timelineStatus === 'Completed'
-                              ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
-                              : 'bg-indigo-950/60 text-indigo-300 border border-indigo-800/40'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                              : 'bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30'
                           }`}
                         >
                           {item.timelineStatus}
                         </span>
                       </div>
 
-                      <h3 className="text-sm font-bold text-white line-clamp-1">{item.title}</h3>
+                      <h3 className="text-sm font-bold text-[var(--text-main)] line-clamp-1">{item.title}</h3>
 
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <Clock className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                        <Clock className="w-3.5 h-3.5 text-[var(--primary)] flex-shrink-0" />
                         <span className="truncate">Due: {item.deadlineFormatted}</span>
                       </div>
 
-                      <p className="text-[11px] text-gray-400">{item.countdown}</p>
+                      <p className="text-[11px] text-[var(--text-muted)]">{item.countdown}</p>
                     </div>
 
                     {/* Submission Progress Bar */}
-                    <div className="space-y-1.5 pt-2 border-t border-[#162139]">
+                    <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-400">Handed in</span>
-                        <span className="font-semibold text-white">
+                        <span className="text-[var(--text-muted)]">Handed in</span>
+                        <span className="font-semibold text-[var(--text-main)]">
                           {subCount} / {total} ({percent}%)
                         </span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-[#162139] overflow-hidden">
+                      <div className="w-full h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-indigo-500 transition-all"
+                          className="h-full rounded-full bg-[var(--primary)] transition-all"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
                       <div className="flex items-center justify-between pt-1">
                         <Link
                           href={`/dashboard/courses/${item.courseId}?tab=assignments`}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+                          className="text-xs text-[var(--primary)] hover:opacity-80 font-semibold"
                         >
                           Track Submissions →
                         </Link>
@@ -615,17 +635,17 @@ export default function TeacherDashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
                 <span>Class Weak Topics & Struggling Concepts</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Automatically identified from student answers across all course quiz submissions.
               </p>
             </div>
             <Link
               href="/dashboard/teacher/analytics"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+              className="text-xs text-[var(--primary)] hover:opacity-80 font-semibold flex items-center gap-1"
             >
               <span>Full Analytics</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -633,8 +653,8 @@ export default function TeacherDashboardPage() {
           </div>
 
           {weakTopics.length === 0 ? (
-            <div className="p-8 text-center bg-[#0d1425] border border-[#1b263e] rounded-2xl text-xs text-gray-400 space-y-2">
-              <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
+            <div className="p-8 text-center app-card rounded-2xl text-xs text-[var(--text-muted)] space-y-2">
+              <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
               <p>No weak topics detected. Either students are scoring above 60% or quizzes have not been attempted yet.</p>
             </div>
           ) : (
@@ -642,20 +662,20 @@ export default function TeacherDashboardPage() {
               {weakTopics.map((topic, idx) => (
                 <div
                   key={idx}
-                  className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-3"
+                  className="p-5 rounded-2xl app-card space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-800/40">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                       Accuracy: {topic.accuracyRate}%
                     </span>
-                    <span className="text-xs text-rose-400 font-medium">
+                    <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">
                       {topic.affectedStudentsCount} student{topic.affectedStudentsCount === 1 ? '' : 's'} struggling
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-bold text-white leading-snug">{topic.topic}</h3>
-                    <div className="text-xs text-indigo-400 flex items-center gap-1.5 mt-1">
+                    <h3 className="text-sm font-bold text-[var(--text-main)] leading-snug">{topic.topic}</h3>
+                    <div className="text-xs text-[var(--primary)] flex items-center gap-1.5 mt-1">
                       <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                       <span className="truncate">Source PDF: {topic.materialFileName}</span>
                     </div>
@@ -663,11 +683,11 @@ export default function TeacherDashboardPage() {
 
                   {/* Progress bar */}
                   <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] text-gray-400">
+                    <div className="flex justify-between text-[11px] text-[var(--text-muted)]">
                       <span>Concept Mastery</span>
                       <span>{topic.accuracyRate}%</span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-[#162139] overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
                           topic.accuracyRate < 50
@@ -679,7 +699,7 @@ export default function TeacherDashboardPage() {
                         style={{ width: `${Math.max(5, topic.accuracyRate)}%` }}
                       />
                     </div>
-                    <div className="text-[10px] text-gray-500 flex justify-between">
+                    <div className="text-[10px] text-[var(--text-muted)] flex justify-between">
                       <span>{topic.incorrectCount} mistakes out of {topic.totalAnswers} answers</span>
                       <span>Quiz: {topic.quizTitle}</span>
                     </div>
@@ -688,7 +708,7 @@ export default function TeacherDashboardPage() {
                   {/* Inspect questions button */}
                   <button
                     onClick={() => setSelectedTopic(topic)}
-                    className="w-full py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-indigo-300 hover:text-white rounded-lg text-xs font-medium border border-[#1f2c4a] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded-lg text-xs font-medium border border-[var(--border-color)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Inspect Struggled Questions ({topic.sampleQuestions.length})</span>
@@ -703,11 +723,11 @@ export default function TeacherDashboardPage() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <Users className="w-4 h-4 text-[var(--primary)]" />
                 <span>Enrolled Students Performance ({students.length})</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Real-time tracking of student attempts, average scores, and attention alerts.
               </p>
             </div>
@@ -715,22 +735,22 @@ export default function TeacherDashboardPage() {
             <div className="flex flex-wrap items-center gap-2">
               {/* Search box */}
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-2.5 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Filter by name..."
                   value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
-                  className="pl-8 pr-3 py-1 bg-[#0c1220] border border-[#1f2c4a] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 w-44"
+                  className="pl-8 pr-3 py-1 app-input text-xs w-44"
                 />
               </div>
 
               {/* Status tabs */}
-              <div className="flex rounded-lg bg-[#0c1220] border border-[#1f2c4a] p-0.5 text-xs">
+              <div className="flex rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-color)] p-0.5 text-xs">
                 <button
                   onClick={() => setStudentFilter('ALL')}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                    studentFilter === 'ALL' ? 'bg-indigo-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                    studentFilter === 'ALL' ? 'bg-[var(--primary)] text-white font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   All ({students.length})
@@ -738,7 +758,7 @@ export default function TeacherDashboardPage() {
                 <button
                   onClick={() => setStudentFilter('NEEDS_SUPPORT')}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                    studentFilter === 'NEEDS_SUPPORT' ? 'bg-rose-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                    studentFilter === 'NEEDS_SUPPORT' ? 'bg-rose-600 text-white font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   Needs Attention ({summary.studentsNeedingSupportCount})
@@ -746,7 +766,7 @@ export default function TeacherDashboardPage() {
                 <button
                   onClick={() => setStudentFilter('GOOD')}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                    studentFilter === 'GOOD' ? 'bg-emerald-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                    studentFilter === 'GOOD' ? 'bg-emerald-600 text-white font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   Good (
@@ -755,7 +775,7 @@ export default function TeacherDashboardPage() {
                 <button
                   onClick={() => setStudentFilter('NO_ATTEMPTS')}
                   className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
-                    studentFilter === 'NO_ATTEMPTS' ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                    studentFilter === 'NO_ATTEMPTS' ? 'bg-gray-600 text-white font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   No Attempts (
@@ -765,11 +785,11 @@ export default function TeacherDashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-[#0d1425] border border-[#1b263e] overflow-hidden">
+          <div className="rounded-2xl app-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-[#1b263e] text-gray-400 font-semibold bg-[#0a101d]">
+                  <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] font-semibold bg-[var(--bg-subtle)]">
                     <th className="py-3 px-4">Student</th>
                     <th className="py-3 px-4">Courses</th>
                     <th className="py-3 px-4">Quiz Attempts</th>
@@ -778,24 +798,24 @@ export default function TeacherDashboardPage() {
                     <th className="py-3 px-4">Last Activity</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#18233a]">
+                <tbody className="divide-y divide-[var(--border-subtle)]">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-gray-500">
+                      <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">
                         No students match the selected filter.
                       </td>
                     </tr>
                   ) : (
                     filteredStudents.map((st) => (
-                      <tr key={st.id} className="hover:bg-[#11192e] transition-colors">
+                      <tr key={st.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-[var(--primary)] text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
                               {st.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-semibold text-white">{st.name}</div>
-                              <div className="text-[11px] text-gray-400">{st.email}</div>
+                              <div className="font-semibold text-[var(--text-main)]">{st.name}</div>
+                              <div className="text-[11px] text-[var(--text-muted)]">{st.email}</div>
                             </div>
                           </div>
                         </td>
@@ -805,7 +825,7 @@ export default function TeacherDashboardPage() {
                             {st.courses?.map((c) => (
                               <span
                                 key={c.courseId}
-                                className="px-1.5 py-0.5 rounded text-[10px] bg-[#162139] text-gray-300 border border-[#243456]"
+                                className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)]"
                               >
                                 {c.courseCode}
                               </span>
@@ -813,14 +833,14 @@ export default function TeacherDashboardPage() {
                           </div>
                         </td>
 
-                        <td className="py-3 px-4 font-medium text-white">
+                        <td className="py-3 px-4 font-medium text-[var(--text-main)]">
                           {st.totalAttempts} attempt{st.totalAttempts === 1 ? '' : 's'}
                         </td>
 
                         <td className="py-3 px-4">
                           {st.averageScore !== null ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 rounded-full bg-[#162139] overflow-hidden">
+                              <div className="w-16 h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                                 <div
                                   className={`h-full rounded-full ${
                                     st.averageScore < 60 ? 'bg-rose-500' : 'bg-emerald-500'
@@ -830,37 +850,37 @@ export default function TeacherDashboardPage() {
                               </div>
                               <span
                                 className={`font-bold ${
-                                  st.averageScore < 60 ? 'text-rose-400' : 'text-emerald-400'
+                                  st.averageScore < 60 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                                 }`}
                               >
                                 {st.averageScore}%
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-500 italic">No score yet</span>
+                            <span className="text-[var(--text-subtle)] italic">No score yet</span>
                           )}
                         </td>
 
                         <td className="py-3 px-4">
                           {st.status === 'GOOD' && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                               On Track
                             </span>
                           )}
                           {st.status === 'NEEDS_SUPPORT' && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/60 text-rose-300 border border-rose-800/40 flex items-center gap-1 w-max">
-                              <AlertTriangle className="w-3 h-3 text-rose-400" />
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 w-max">
+                              <AlertTriangle className="w-3 h-3 text-rose-500" />
                               <span>Needs Attention</span>
                             </span>
                           )}
                           {st.status === 'NO_ATTEMPTS' && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-gray-900 text-gray-400 border border-gray-800">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-[var(--bg-subtle)] text-[var(--text-muted)] border border-[var(--border-color)]">
                               No Attempts
                             </span>
                           )}
                         </td>
 
-                        <td className="py-3 px-4 text-gray-400 text-[11px]">
+                        <td className="py-3 px-4 text-[var(--text-muted)] text-[11px]">
                           {st.lastActivity ? new Date(st.lastActivity).toLocaleDateString() : 'N/A'}
                         </td>
                       </tr>
@@ -876,17 +896,17 @@ export default function TeacherDashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
                 <span>Class Quiz Results & Completion ({quizzes.length})</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Summary of attempts, average performance, and score distribution.
               </p>
             </div>
             <Link
               href="/dashboard/teacher/quizzes"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+              className="text-xs text-[var(--primary)] hover:opacity-80 font-semibold flex items-center gap-1"
             >
               <span>Detailed Breakdown</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -897,48 +917,48 @@ export default function TeacherDashboardPage() {
             {quizzes.map((quiz) => (
               <div
                 key={quiz.id}
-                className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between"
+                className="p-5 rounded-2xl app-card flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-indigo-950/70 text-indigo-300 border border-indigo-800/40">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                       {quiz.courseCode}
                     </span>
-                    <span className="text-xs text-gray-400">{quiz.questionCount} Questions</span>
+                    <span className="text-xs text-[var(--text-muted)]">{quiz.questionCount} Questions</span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-white mb-1.5">{quiz.title}</h3>
-                  <div className="text-xs text-indigo-400 flex items-center gap-1 mb-3">
+                  <h3 className="text-sm font-bold text-[var(--text-main)] mb-1.5">{quiz.title}</h3>
+                  <div className="text-xs text-[var(--primary)] flex items-center gap-1 mb-3">
                     <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="truncate">Source: {quiz.materialFileName || quiz.topic}</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#0a101d] border border-[#18233a] space-y-2 mb-3">
+                  <div className="p-3 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-color)] space-y-2 mb-3">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-400">Total Submissions:</span>
-                      <span className="font-bold text-white">{quiz.attemptsCount}</span>
+                      <span className="text-[var(--text-muted)]">Total Submissions:</span>
+                      <span className="font-bold text-[var(--text-main)]">{quiz.attemptsCount}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-400">Class Average:</span>
-                      <span className={`font-bold ${quiz.averageScore !== null && quiz.averageScore >= 60 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      <span className="text-[var(--text-muted)]">Class Average:</span>
+                      <span className={`font-bold ${quiz.averageScore !== null && quiz.averageScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                         {quiz.averageScore !== null ? `${quiz.averageScore}%` : 'No attempts'}
                       </span>
                     </div>
 
                     {quiz.scoreDistribution && (
-                      <div className="pt-2 border-t border-[#18233a] space-y-1">
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Score Spread</div>
+                      <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1">
+                        <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Score Spread</div>
                         <div className="grid grid-cols-4 gap-1 text-center text-[10px]">
-                          <div className="p-1 rounded bg-rose-950/40 text-rose-300">
+                          <div className="p-1 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
                             &lt;50%: {quiz.scoreDistribution.below50}
                           </div>
-                          <div className="p-1 rounded bg-amber-950/40 text-amber-300">
+                          <div className="p-1 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
                             50-70%: {quiz.scoreDistribution.from50to70}
                           </div>
-                          <div className="p-1 rounded bg-indigo-950/40 text-indigo-300">
+                          <div className="p-1 rounded bg-[var(--primary-light)] text-[var(--primary)]">
                             70-90%: {quiz.scoreDistribution.from70to90}
                           </div>
-                          <div className="p-1 rounded bg-emerald-950/40 text-emerald-300">
+                          <div className="p-1 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                             &gt;90%: {quiz.scoreDistribution.above90}
                           </div>
                         </div>
@@ -949,7 +969,7 @@ export default function TeacherDashboardPage() {
 
                 <Link
                   href={`/dashboard/teacher/quizzes`}
-                  className="w-full py-1.5 bg-[#141d33] hover:bg-[#1a2642] text-gray-300 hover:text-white rounded-lg text-xs font-semibold text-center border border-[#1f2c4a] transition-colors"
+                  className="w-full py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded-lg text-xs font-semibold text-center border border-[var(--border-color)] transition-colors"
                 >
                   View Question Breakdown →
                 </Link>

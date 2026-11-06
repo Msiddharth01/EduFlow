@@ -110,14 +110,14 @@ export default function StandaloneSummariesPage() {
         </div>
 
         {/* Generator Controls Card */}
-        <div className="p-6 rounded-xl bg-white dark:bg-[#0d1425] border border-gray-200 dark:border-[#1b263e] shadow-sm space-y-4">
+        <div className="app-card p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1.5">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Course
               </label>
               <select
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#090e1c] border border-gray-300 dark:border-[#1e2a44] rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="app-select w-full"
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
               >
@@ -130,11 +130,11 @@ export default function StandaloneSummariesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1.5">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Document / Material
               </label>
               <select
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#090e1c] border border-gray-300 dark:border-[#1e2a44] rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="app-select w-full"
                 value={selectedMaterialId}
                 onChange={(e) => setSelectedMaterialId(e.target.value)}
               >
@@ -151,11 +151,11 @@ export default function StandaloneSummariesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1.5">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                 Summary Format
               </label>
               <select
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#090e1c] border border-gray-300 dark:border-[#1e2a44] rounded-lg text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="app-select w-full"
                 value={summaryType}
                 onChange={(e) => setSummaryType(e.target.value as any)}
               >
@@ -218,53 +218,53 @@ export default function StandaloneSummariesPage() {
 
         {/* Output Card */}
         {summaryResult ? (
-          <div className="p-6 md:p-8 rounded-xl bg-white dark:bg-[#0d1425] border border-gray-200 dark:border-indigo-900/40 shadow-sm space-y-6">
+          <div className="app-card p-6 md:p-8 space-y-6">
             {/* Header info */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 dark:border-[#1b263e] gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--border-color)] gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                  <span className="badge badge-accent uppercase tracking-wider">
                     {summaryResult.type.replace('-', ' ')}
                   </span>
                   {summaryResult.sourcePages && summaryResult.sourcePages.length > 0 && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
                       <FileText className="w-3.5 h-3.5" />
                       <span>{summaryResult.sourcePages.length} Pages Verified</span>
                     </span>
                   )}
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1.5">{summaryResult.title}</h2>
+                <h2 className="text-xl font-bold text-[var(--text-main)] mt-1.5">{summaryResult.title}</h2>
               </div>
 
               {summaryResult.sourcePages && (
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Pages:</span>
+                  <span className="text-xs font-semibold text-[var(--text-muted)]">Pages:</span>
                   {summaryResult.sourcePages.slice(0, 8).map((p) => (
                     <span
                       key={p}
-                      className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium"
+                      className="px-2 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)] text-xs font-medium"
                     >
                       P.{p}
                     </span>
                   ))}
                   {summaryResult.sourcePages.length > 8 && (
-                    <span className="text-xs text-gray-500">+{summaryResult.sourcePages.length - 8} more</span>
+                    <span className="text-xs text-[var(--text-muted)]">+{summaryResult.sourcePages.length - 8} more</span>
                   )}
                 </div>
               )}
             </div>
 
             {/* Rendered Markdown Body */}
-            <div className="pt-2">
+            <div className="pt-2 text-[var(--text-main)]">
               <MarkdownRenderer content={summaryResult.text} />
             </div>
           </div>
         ) : (
           !errorMessage && (
-            <div className="p-12 text-center bg-gray-50 dark:bg-[#0c1322] border border-gray-200 dark:border-[#1a253c] rounded-xl text-xs text-gray-500 dark:text-gray-400 space-y-3">
-              <BookOpen className="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto" />
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No summary generated yet.</p>
-              <p className="max-w-md mx-auto text-xs">
+            <div className="app-card-subtle p-12 text-center text-xs text-[var(--text-muted)] space-y-3">
+              <BookOpen className="w-10 h-10 text-[var(--text-muted)] mx-auto opacity-60" />
+              <p className="text-sm font-semibold text-[var(--text-main)]">No summary generated yet.</p>
+              <p className="max-w-md mx-auto text-xs text-[var(--text-muted)]">
                 Select your course material above and choose between Quick Overview, In-Depth Breakdown, Exam Prep Notes, or Simplified Explanation.
               </p>
             </div>

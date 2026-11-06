@@ -18,6 +18,7 @@ import {
   X,
   ExternalLink,
   ChevronRight,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function TeacherAnalyticsPage() {
@@ -89,21 +90,21 @@ export default function TeacherAnalyticsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-indigo-950/60 text-indigo-400 border border-indigo-800/40 uppercase">
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30 uppercase">
                 Diagnostic Analytics
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--text-main)] mt-1">
               Class Performance & Topic Mastery
             </h1>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">
+            <p className="text-xs md:text-sm text-[var(--text-muted)] mt-1">
               Gain deep insights into learning gaps, concept accuracy rates, and struggling students across all your courses.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/teacher"
-              className="px-3.5 py-2 bg-[#0e1628] hover:bg-[#16223b] border border-[#1e2d4d] text-gray-300 text-xs font-semibold rounded-lg transition-all"
+              className="px-3.5 py-2 app-card-subtle text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs font-semibold rounded-lg transition-all"
             >
               Dashboard
             </Link>
@@ -112,75 +113,75 @@ export default function TeacherAnalyticsPage() {
 
         {/* Top Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e]">
+          <div className="p-5 rounded-2xl app-card">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium">Class Average</span>
-              <Target className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs text-[var(--text-muted)] font-medium">Class Average</span>
+              <Target className="w-4 h-4 text-[var(--primary)]" />
             </div>
-            <div className="text-2xl md:text-3xl font-black text-white mt-2">
+            <div className="text-2xl md:text-3xl font-black text-[var(--text-main)] mt-2">
               {summary.averageQuizScore}%
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-[var(--text-muted)] mt-1">
               Across {summary.totalAttempts} student submissions
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e]">
+          <div className="p-5 rounded-2xl app-card">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium">Needs Attention</span>
-              <AlertCircle className="w-4 h-4 text-rose-400" />
+              <span className="text-xs text-[var(--text-muted)] font-medium">Needs Attention</span>
+              <AlertCircle className="w-4 h-4 text-rose-500" />
             </div>
-            <div className="text-2xl md:text-3xl font-black text-rose-400 mt-2">
+            <div className="text-2xl md:text-3xl font-black text-rose-600 dark:text-rose-400 mt-2">
               {summary.studentsNeedingSupportCount}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-[var(--text-muted)] mt-1">
               Scoring &lt; 60% on quiz attempts
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e]">
+          <div className="p-5 rounded-2xl app-card">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium">Active Enrolments</span>
-              <Users className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs text-[var(--text-muted)] font-medium">Active Enrolments</span>
+              <Users className="w-4 h-4 text-[var(--primary)]" />
             </div>
-            <div className="text-2xl md:text-3xl font-black text-white mt-2">
+            <div className="text-2xl md:text-3xl font-black text-[var(--text-main)] mt-2">
               {summary.totalStudents}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-[var(--text-muted)] mt-1">
               In {summary.totalCourses} managed courses
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[#0d1425] border border-[#1b263e]">
+          <div className="p-5 rounded-2xl app-card">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium">Diagnostic Quizzes</span>
-              <BarChart2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs text-[var(--text-muted)] font-medium">Diagnostic Quizzes</span>
+              <BarChart2 className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-2xl md:text-3xl font-black text-emerald-400 mt-2">
+            <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
               {summary.totalQuizzes}
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">
+            <div className="text-[11px] text-[var(--text-muted)] mt-1">
               Linked to verified PDF materials
             </div>
           </div>
         </div>
 
         {/* WEAK TOPICS SECTION */}
-        <div className="p-6 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-4">
+        <div className="p-6 rounded-2xl app-card space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-rose-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-rose-500" />
                 <span>Weak Topics & Struggling Concepts</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Aggregated from verified student answers. Topics below 60% accuracy indicate core comprehension gaps.
               </p>
             </div>
           </div>
 
           {weakTopics.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 bg-[#080d1a] border border-[#1b263e] rounded-xl text-xs">
+            <div className="p-8 text-center text-[var(--text-muted)] app-card-subtle rounded-xl text-xs">
               No weak topics identified yet. As students take course quizzes, diagnostic analytics will be automatically updated.
             </div>
           ) : (
@@ -188,39 +189,39 @@ export default function TeacherAnalyticsPage() {
               {weakTopics.map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-xl bg-[#080d1a] border border-[#1b263e] hover:border-indigo-500/40 transition-all space-y-3"
+                  className="p-4 rounded-xl app-card hover:border-[var(--primary)]/40 transition-all space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141d33] text-indigo-300">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--primary-light)] text-[var(--primary)]">
                           {item.quizTitle}
                         </span>
                         {item.accuracyRate < 50 ? (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                             Critical Gap
                           </span>
                         ) : (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                             Needs Review
                           </span>
                         )}
                       </div>
-                      <h3 className="text-sm font-bold text-white mt-1.5">{item.topic}</h3>
-                      <div className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">
-                        <FileText className="w-3 h-3 text-gray-500" />
+                      <h3 className="text-sm font-bold text-[var(--text-main)] mt-1.5">{item.topic}</h3>
+                      <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
+                        <FileText className="w-3 h-3 text-[var(--text-subtle)]" />
                         <span>Source: {item.materialTitle || item.materialFileName || 'Course PDF'}</span>
                       </div>
                     </div>
                     <div className="text-right">
                       <div
                         className={`text-lg font-black ${
-                          item.accuracyRate >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                          item.accuracyRate >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}
                       >
                         {item.accuracyRate}%
                       </div>
-                      <div className="text-[10px] text-gray-500 uppercase font-semibold">
+                      <div className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">
                         Accuracy Rate
                       </div>
                     </div>
@@ -228,7 +229,7 @@ export default function TeacherAnalyticsPage() {
 
                   {/* Accuracy Bar */}
                   <div className="space-y-1">
-                    <div className="w-full h-1.5 rounded-full bg-[#16223b] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           item.accuracyRate >= 60 ? 'bg-emerald-500' : 'bg-rose-500'
@@ -236,19 +237,19 @@ export default function TeacherAnalyticsPage() {
                         style={{ width: `${Math.min(100, Math.max(5, item.accuracyRate))}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[11px] text-gray-400">
+                    <div className="flex justify-between text-[11px] text-[var(--text-muted)]">
                       <span>{item.affectedStudentsCount} student(s) struggling</span>
                       <span>{item.incorrectCount} incorrect responses</span>
                     </div>
                   </div>
 
-                  <div className="pt-1 flex items-center justify-between border-t border-[#141e34]">
-                    <span className="text-[11px] text-gray-400">
+                  <div className="pt-1 flex items-center justify-between border-t border-[var(--border-subtle)]">
+                    <span className="text-[11px] text-[var(--text-muted)]">
                       {item.sampleQuestions.length} flagged question(s)
                     </span>
                     <button
                       onClick={() => setInspectedTopic(item)}
-                      className="px-2.5 py-1 rounded bg-indigo-600/15 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 text-xs font-semibold transition-all inline-flex items-center gap-1"
+                      className="px-2.5 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white border border-[var(--primary)]/20 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                     >
                       <span>Inspect Questions</span>
                       <ChevronRight className="w-3 h-3" />
@@ -261,14 +262,14 @@ export default function TeacherAnalyticsPage() {
         </div>
 
         {/* COURSE LEVEL PERFORMANCE BREAKDOWN */}
-        <div className="p-6 rounded-2xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-400" />
+        <div className="p-6 rounded-2xl app-card space-y-4">
+          <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-[var(--primary)]" />
             <span>Course-Level Performance Breakdown</span>
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#090e1d] text-gray-400 uppercase tracking-wider font-semibold border-b border-[#1b263e]">
+              <thead className="bg-[var(--bg-subtle)] text-[var(--text-muted)] uppercase tracking-wider font-semibold border-b border-[var(--border-color)]">
                 <tr>
                   <th className="py-3 px-4">Course</th>
                   <th className="py-3 px-4 text-center">Enrolled</th>
@@ -279,41 +280,41 @@ export default function TeacherAnalyticsPage() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#162137]">
+              <tbody className="divide-y divide-[var(--border-subtle)]">
                 {courses.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#10192e] transition-colors">
+                  <tr key={c.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-white">{c.title}</div>
-                      <div className="text-gray-400 text-[11px] font-mono">{c.code}</div>
+                      <div className="font-bold text-[var(--text-main)]">{c.title}</div>
+                      <div className="text-[var(--text-muted)] text-[11px] font-mono">{c.code}</div>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                    <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                       {c.enrollmentCount}
                     </td>
-                    <td className="py-3.5 px-4 text-center text-gray-300">{c.materialCount}</td>
-                    <td className="py-3.5 px-4 text-center text-gray-300">{c.quizCount}</td>
-                    <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                    <td className="py-3.5 px-4 text-center text-[var(--text-secondary)]">{c.materialCount}</td>
+                    <td className="py-3.5 px-4 text-center text-[var(--text-secondary)]">{c.quizCount}</td>
+                    <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                       {c.totalAttempts}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       {c.classAverage !== null ? (
                         <span
                           className={`font-black text-sm ${
-                            c.classAverage >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                            c.classAverage >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
                           {c.classAverage}%
                         </span>
                       ) : (
-                        <span className="text-gray-500 italic">No attempts</span>
+                        <span className="text-[var(--text-subtle)] italic">No attempts</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
-                        href={`/dashboard/courses/${c.id}`}
-                        className="px-2.5 py-1 rounded bg-indigo-600/15 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 text-xs font-semibold transition-all inline-flex items-center gap-1"
+                        href={`/dashboard/courses/${c.id}?tab=analytics`}
+                        className="px-2.5 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white border border-[var(--primary)]/20 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Workspace</span>
-                        <ChevronRight className="w-3 h-3" />
+                        <span>Inspect</span>
+                        <ArrowRight className="w-3 h-3" />
                       </Link>
                     </td>
                   </tr>

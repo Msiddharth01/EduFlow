@@ -190,10 +190,69 @@ export const PATTERNS: PatternType[] = [
 ];
 
 /**
- * Deterministically computes a palette and pattern from a course identifier.
+ * Deterministically computes a palette and pattern from a course identifier and title.
+ * Assigns subject-coordinated harmonious palettes (Software Project Management -> amber/yellow,
+ * Data Structures and Algorithms -> soft pink/coral, Web Development -> warm peach/orange,
+ * AI & Computer Science -> sky/indigo), with deterministic hash fallback.
  * Stable across refreshes, logins, and devices.
  */
-export function getCoursePatternConfig(courseIdOrCode?: string) {
+export function getCoursePatternConfig(courseIdOrCode?: string, title?: string) {
+  const combined = `${courseIdOrCode || ''} ${title || ''}`.toLowerCase();
+
+  // 1. Software Project Management -> warm amber/yellow palette
+  if (
+    combined.includes('project management') ||
+    combined.includes('software project') ||
+    combined.includes('cset501')
+  ) {
+    const yellowPalette = PALETTES.find((p) => p.name === 'yellow') || PALETTES[5];
+    return {
+      palette: yellowPalette,
+      pattern: 'hexagons' as PatternType,
+    };
+  }
+
+  // 2. Data Structures and Algorithms -> soft pink/coral palette
+  if (
+    combined.includes('data structure') ||
+    combined.includes('algorithm') ||
+    combined.includes('cset401')
+  ) {
+    const pinkPalette = PALETTES.find((p) => p.name === 'pink') || PALETTES[4];
+    return {
+      palette: pinkPalette,
+      pattern: 'triangles' as PatternType,
+    };
+  }
+
+  // 3. Web Development -> warm peach/orange palette
+  if (
+    combined.includes('web development') ||
+    combined.includes('web dev') ||
+    combined.includes('cset201') ||
+    combined.includes('web')
+  ) {
+    const orangePalette = PALETTES.find((p) => p.name === 'orange') || PALETTES[3];
+    return {
+      palette: orangePalette,
+      pattern: 'circles' as PatternType,
+    };
+  }
+
+  // 4. Artificial Intelligence / Computer Science -> sky blue / indigo
+  if (
+    combined.includes('artificial intelligence') ||
+    combined.includes('cs101') ||
+    combined.includes('ai')
+  ) {
+    const skyPalette = PALETTES.find((p) => p.name === 'sky') || PALETTES[1];
+    return {
+      palette: skyPalette,
+      pattern: 'grid' as PatternType,
+    };
+  }
+
+  // Deterministic hash fallback
   const seed = (courseIdOrCode || 'eduflow-course-default').trim();
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -215,19 +274,21 @@ export function getCoursePatternConfig(courseIdOrCode?: string) {
 interface CoursePatternBannerProps {
   courseId: string;
   courseCode?: string;
+  title?: string;
   className?: string;
 }
 
 export default function CoursePatternBanner({
   courseId,
   courseCode,
+  title,
   className = '',
 }: CoursePatternBannerProps) {
   const { theme } = useTheme();
 
   const { palette, pattern } = useMemo(() => {
-    return getCoursePatternConfig(courseId || courseCode);
-  }, [courseId, courseCode]);
+    return getCoursePatternConfig(courseId || courseCode, title);
+  }, [courseId, courseCode, title]);
 
   const currentTheme = theme === 'light' ? palette.light : palette.dark;
 

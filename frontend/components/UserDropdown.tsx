@@ -55,7 +55,10 @@ export default function UserDropdown() {
         aria-haspopup="true"
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs shadow-xs ring-1 ring-indigo-500/30">
+        <div
+          style={{ backgroundColor: 'var(--primary)' }}
+          className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold text-xs shadow-xs ring-1 ring-blue-500/30"
+        >
           {user.profileImage ? (
             <img
               src={getAvatarUrl(user.profileImage)}
@@ -80,7 +83,7 @@ export default function UserDropdown() {
 
         <ChevronDown
           className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-indigo-400' : 'group-hover:text-[var(--text-main)]'
+            isOpen ? 'rotate-180 text-[var(--primary)]' : 'group-hover:text-[var(--text-main)]'
           }`}
         />
       </button>
@@ -93,7 +96,7 @@ export default function UserDropdown() {
             borderColor: 'var(--border-color)',
             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
           }}
-          className="absolute right-0 mt-2 w-64 rounded-2xl border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 py-1.5"
+          className="absolute right-0 mt-2 w-64 rounded-lg border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 py-1.5"
         >
           {/* Header Info */}
           <div
@@ -101,7 +104,10 @@ export default function UserDropdown() {
             className="px-4 py-3 bg-[var(--bg-subtle)]/50"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-sm shadow-xs">
+              <div
+                style={{ backgroundColor: 'var(--primary)' }}
+                className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-xs ring-1 ring-blue-500/30"
+              >
                 {user.profileImage ? (
                   <img
                     src={getAvatarUrl(user.profileImage)}
@@ -124,11 +130,12 @@ export default function UserDropdown() {
                 </div>
                 <div className="mt-1 flex items-center gap-1">
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                      isTeacher
-                        ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                        : 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
-                    }`}
+                    style={{
+                      backgroundColor: 'var(--primary-light)',
+                      color: 'var(--primary)',
+                      border: '1px solid rgba(53, 106, 230, 0.3)',
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
                   >
                     {isTeacher ? (
                       <Shield className="w-2.5 h-2.5" />
@@ -151,18 +158,18 @@ export default function UserDropdown() {
             <Link
               href="/dashboard/profile"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] hover:text-indigo-400 transition-colors cursor-pointer"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--primary)] transition-colors cursor-pointer"
             >
-              <UserIcon className="w-4 h-4 text-indigo-400" />
+              <UserIcon className="w-4 h-4 text-[var(--primary)]" />
               <span>My Profile</span>
             </Link>
 
             <Link
               href="/dashboard/settings"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] hover:text-indigo-400 transition-colors cursor-pointer"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--primary)] transition-colors cursor-pointer"
             >
-              <Settings className="w-4 h-4 text-indigo-400" />
+              <Settings className="w-4 h-4 text-[var(--primary)]" />
               <span>Settings</span>
             </Link>
           </div>

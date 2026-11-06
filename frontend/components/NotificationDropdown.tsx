@@ -135,17 +135,17 @@ export default function NotificationDropdown() {
   const getIconForType = (type: string) => {
     switch (type) {
       case 'MATERIAL_UPLOADED':
-        return <FileText className="w-4 h-4 text-indigo-400" />;
+        return <FileText className="w-4 h-4 text-[var(--primary)]" />;
       case 'QUIZ_PUBLISHED':
-        return <HelpCircle className="w-4 h-4 text-emerald-400" />;
+        return <HelpCircle className="w-4 h-4 text-emerald-500" />;
       case 'QUIZ_RESULT':
-        return <Award className="w-4 h-4 text-amber-400" />;
+        return <Award className="w-4 h-4 text-amber-500" />;
       case 'STUDENT_ENROLLED':
-        return <Users className="w-4 h-4 text-blue-400" />;
+        return <Users className="w-4 h-4 text-[var(--primary)]" />;
       case 'ASSIGNMENT_SUBMISSION':
-        return <GraduationCap className="w-4 h-4 text-violet-400" />;
+        return <GraduationCap className="w-4 h-4 text-[var(--primary)]" />;
       default:
-        return <Sparkles className="w-4 h-4 text-indigo-400" />;
+        return <Sparkles className="w-4 h-4 text-[var(--primary)]" />;
     }
   };
 
@@ -168,7 +168,10 @@ export default function NotificationDropdown() {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs animate-pulse">
+          <span
+            style={{ backgroundColor: 'var(--primary)' }}
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs animate-pulse"
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -182,7 +185,7 @@ export default function NotificationDropdown() {
             borderColor: 'var(--border-color)',
             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
           }}
-          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
         >
           {/* Header */}
           <div
@@ -195,7 +198,14 @@ export default function NotificationDropdown() {
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-[var(--text-main)]">Notifications</span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <span
+                  style={{
+                    backgroundColor: 'var(--primary-light)',
+                    color: 'var(--primary)',
+                    border: '1px solid rgba(53, 106, 230, 0.3)',
+                  }}
+                  className="px-2 py-0.5 text-[11px] font-semibold rounded-full"
+                >
                   {unreadCount} new
                 </span>
               )}
@@ -205,7 +215,8 @@ export default function NotificationDropdown() {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={loading}
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                style={{ color: 'var(--primary)' }}
+                className="text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1 cursor-pointer disabled:opacity-50"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>Mark all read</span>
@@ -258,7 +269,14 @@ export default function NotificationDropdown() {
                         {notif.title}
                       </span>
                       {notif.course && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-indigo-950/40 text-indigo-400 border border-indigo-800/30 font-medium">
+                        <span
+                          style={{
+                            backgroundColor: 'var(--primary-light)',
+                            color: 'var(--primary)',
+                            border: '1px solid rgba(53, 106, 230, 0.25)',
+                          }}
+                          className="text-[10px] px-1.5 py-0.2 rounded-md font-medium"
+                        >
                           {notif.course.code}
                         </span>
                       )}
@@ -274,7 +292,10 @@ export default function NotificationDropdown() {
                         {formatTimestamp(notif.createdAt)}
                       </span>
                       {notif.linkUrl && (
-                        <span className="text-indigo-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                        <span
+                          style={{ color: 'var(--primary)' }}
+                          className="group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5"
+                        >
                           View details <ArrowRight className="w-2.5 h-2.5" />
                         </span>
                       )}
@@ -287,13 +308,16 @@ export default function NotificationDropdown() {
                       <button
                         onClick={(e) => handleMarkAsRead(e, notif.id)}
                         title="Mark as read"
-                        className="p-1 rounded-md text-[var(--text-muted)] hover:text-indigo-400 hover:bg-[var(--bg-card)] transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--bg-card)] transition-colors cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
                       </button>
                     )}
                     {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-xs" />
+                      <span
+                        style={{ backgroundColor: 'var(--primary)' }}
+                        className="w-2 h-2 rounded-full shadow-xs"
+                      />
                     )}
                   </div>
                 </div>

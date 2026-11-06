@@ -23,13 +23,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+        setIsLoading(false);
+      } catch (e) {
+        console.error('Failed to parse cached user:', e);
+      }
+    }
     if (storedToken) {
       setToken(storedToken);
       authApi.getMe().then((res) => {
         if (res.success) {
           setUser(res.data.user);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
         } else {
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
         }
         setIsLoading(false);
       });
@@ -42,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authApi.login({ email, password });
     if (res.success) {
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       setToken(res.data.token);
       setUser(res.data.user);
       return { success: true, user: res.data.user };
@@ -53,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authApi.register({ name, email, password, role });
     if (res.success) {
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       setToken(res.data.token);
       setUser(res.data.user);
       return { success: true, user: res.data.user };
@@ -64,15 +78,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await authApi.getMe();
     if (res.success && res.data.user) {
       setUser(res.data.user);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
     }
   };
 
   const updateUser = (updatedFields: Partial<User>) => {
-    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+    setUser((prev) => {
+      const updated = prev ? { ...prev, ...updatedFields } : null;
+      if (updated) {
+        localStorage.setItem('user', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };

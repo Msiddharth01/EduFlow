@@ -78,21 +78,21 @@ export default function TeacherQuizzesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-indigo-950/60 text-indigo-400 border border-indigo-800/40 uppercase">
+              <span className="badge badge-accent uppercase">
                 Assessment Analytics
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--text-main)] mt-1">
               Quiz Results & Performance
             </h1>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">
+            <p className="text-xs md:text-sm text-[var(--text-muted)] mt-1">
               Inspect question-level error rates, student submissions, and score distributions for all course quizzes.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/teacher"
-              className="px-3.5 py-2 bg-[#0e1628] hover:bg-[#16223b] border border-[#1e2d4d] text-gray-300 text-xs font-semibold rounded-lg transition-all"
+              className="btn-secondary text-xs"
             >
               Dashboard
             </Link>
@@ -100,28 +100,28 @@ export default function TeacherQuizzesPage() {
         </div>
 
         {/* Search Toolbar */}
-        <div className="p-4 rounded-xl bg-[#0d1425] border border-[#1b263e]">
+        <div className="app-card p-4">
           <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search quiz by title, topic, or course code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#080d1a] border border-[#1c2944] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+              className="app-input w-full pl-9"
             />
           </div>
         </div>
 
         {/* Loading & Error States */}
         {loading && (
-          <div className="p-12 text-center text-gray-400 bg-[#0d1425] border border-[#1b263e] rounded-xl text-xs">
+          <div className="app-card p-12 text-center text-[var(--text-muted)] text-xs">
             Loading quiz analytics and question results...
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -129,15 +129,15 @@ export default function TeacherQuizzesPage() {
 
         {/* Quizzes Table */}
         {!loading && !error && (
-          <div className="rounded-xl bg-[#0d1425] border border-[#1b263e] overflow-hidden">
+          <div className="app-card overflow-hidden">
             {filteredQuizzes.length === 0 ? (
-              <div className="p-12 text-center text-gray-400 text-xs">
+              <div className="p-12 text-center text-[var(--text-muted)] text-xs">
                 No quizzes found matching your search.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#090e1d] text-gray-400 uppercase tracking-wider font-semibold border-b border-[#1b263e]">
+                  <thead className="app-table-header uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-4">Quiz Title & Topic</th>
                       <th className="py-3 px-4">Course</th>
@@ -148,40 +148,40 @@ export default function TeacherQuizzesPage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#162137]">
+                  <tbody className="divide-y divide-[var(--border-color)]">
                     {filteredQuizzes.map((q) => (
-                      <tr key={q.id} className="hover:bg-[#10192e] transition-colors">
+                      <tr key={q.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-white text-sm">{q.title}</div>
-                          <div className="text-gray-400 text-[11px] mt-0.5">{q.topic}</div>
+                          <div className="font-bold text-[var(--text-main)] text-sm">{q.title}</div>
+                          <div className="text-[var(--text-muted)] text-[11px] mt-0.5">{q.topic}</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141d33] text-indigo-300 border border-indigo-900/40">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/20">
                             {q.course?.code || 'COURSE'}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-gray-300">
+                        <td className="py-3.5 px-4 text-[var(--text-secondary)]">
                           {q.material?.title || q.material?.fileName || (
-                            <span className="text-gray-500 italic">Curriculum</span>
+                            <span className="text-[var(--text-muted)] italic">Curriculum</span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                        <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                           {q.questionCount}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-indigo-300">
+                        <td className="py-3.5 px-4 text-center font-bold text-[var(--primary)]">
                           {q.attemptsCount}
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           {q.averageScore !== null ? (
                             <span
                               className={`font-black text-sm ${
-                                q.averageScore >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                                q.averageScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                               }`}
                             >
                               {q.averageScore}%
                             </span>
                           ) : (
-                            <span className="text-gray-500 italic">No attempts</span>
+                            <span className="text-[var(--text-muted)] italic">No attempts</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -190,7 +190,7 @@ export default function TeacherQuizzesPage() {
                               setSelectedQuiz(q);
                               setActiveModalTab('questions');
                             }}
-                            className="px-2.5 py-1 rounded bg-indigo-600/15 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 text-xs font-semibold transition-all inline-flex items-center gap-1"
+                            className="px-2.5 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white border border-[var(--primary)]/20 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                           >
                             <span>Inspect</span>
                             <ArrowRight className="w-3 h-3" />

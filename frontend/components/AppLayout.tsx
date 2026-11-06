@@ -11,19 +11,16 @@ import {
   FileText,
   CheckCircle,
   TrendingUp,
-  Sparkles,
   Settings,
   HelpCircle,
   LogOut,
   Menu,
   X,
   Search,
-  Bell,
   Sun,
   Moon,
   Users,
   BarChart3,
-  GraduationCap,
   User as UserIcon,
   ClipboardList,
   Calendar,
@@ -57,15 +54,14 @@ export default function AppLayout({ children }: SidebarProps) {
   ];
 
   const studentNavItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'My Courses', href: '/dashboard/courses', icon: BookOpen },
+    { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Enrolled Courses', href: '/dashboard/courses', icon: BookOpen },
     { label: 'AI Tutor', href: '/dashboard/tutor', icon: MessageSquare },
-    { label: 'Summaries', href: '/dashboard/summaries', icon: FileText },
-    { label: 'Quizzes', href: '/dashboard/quizzes', icon: CheckCircle },
+    { label: 'Syntheses & Summaries', href: '/dashboard/summaries', icon: FileText },
+    { label: 'Practice Quizzes', href: '/dashboard/quizzes', icon: CheckCircle },
     { label: 'Assignments', href: '/dashboard/assignments', icon: ClipboardList },
-    { label: 'Timeline', href: '/dashboard/timeline', icon: Calendar },
-    { label: 'Progress', href: '/dashboard/progress', icon: TrendingUp },
-    { label: 'Recommendations', href: '/dashboard/progress#recommendations', icon: Sparkles },
+    { label: 'Academic Timeline', href: '/dashboard/timeline', icon: Calendar },
+    { label: 'Performance Analytics', href: '/dashboard/progress', icon: TrendingUp },
   ];
 
   const navItems = isTeacher ? teacherNavItems : studentNavItems;
@@ -86,17 +82,24 @@ export default function AppLayout({ children }: SidebarProps) {
           borderBottom: '1px solid var(--header-border)',
           color: 'var(--text-main)',
         }}
-        className="md:hidden flex items-center justify-between px-4 py-3 sticky top-0 z-40 w-full"
+        className="md:hidden flex items-center justify-between px-4 py-3 sticky top-0 z-40 w-full backdrop-blur-md"
       >
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 font-bold text-lg"
+          className="flex items-center gap-2.5 font-semibold text-base tracking-tight"
           style={{ color: 'var(--text-main)' }}
         >
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-            <Sparkles className="w-4 h-4" />
+          <div
+            className="w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-xs"
+            style={{
+              backgroundColor: 'var(--primary)',
+              color: '#FFFFFF',
+            }}
+          >
+            EF
           </div>
-          <span>Edu<span className="text-indigo-500 font-extrabold">Flow</span></span>
+          <span className="font-semibold tracking-tight">EduFlow</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-subtle)]">Academic</span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -107,13 +110,13 @@ export default function AppLayout({ children }: SidebarProps) {
               borderColor: 'var(--border-color)',
               color: 'var(--text-main)',
             }}
-            className="p-2 rounded-lg border transition-colors cursor-pointer"
+            className="p-2 rounded-md border transition-colors cursor-pointer"
             title="Toggle theme"
           >
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-indigo-500" />
+              <Moon className="w-4 h-4 text-slate-700" />
             )}
           </button>
           <button
@@ -123,7 +126,7 @@ export default function AppLayout({ children }: SidebarProps) {
               borderColor: 'var(--border-color)',
               color: 'var(--text-main)',
             }}
-            className="p-2 rounded-lg border transition-colors cursor-pointer"
+            className="p-2 rounded-md border transition-colors cursor-pointer"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -134,7 +137,7 @@ export default function AppLayout({ children }: SidebarProps) {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden"
         />
       )}
 
@@ -153,17 +156,30 @@ export default function AppLayout({ children }: SidebarProps) {
         {/* Brand */}
         <div
           style={{ borderColor: 'var(--sidebar-border)' }}
-          className="px-6 py-5 flex items-center justify-between border-b"
+          className="px-5 py-4 flex items-center justify-between border-b"
         >
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 font-extrabold text-xl tracking-tight"
+            className="flex items-center gap-2.5 tracking-tight group"
             style={{ color: 'var(--sidebar-text)' }}
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
-              <Sparkles className="w-4 h-4" />
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center font-mono font-bold text-xs shadow-xs"
+              style={{
+                backgroundColor: 'var(--primary)',
+                color: '#FFFFFF',
+              }}
+            >
+              EF
             </div>
-            <span>Edu<span className="text-indigo-500">Flow</span></span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm tracking-tight text-[var(--sidebar-text)]">
+                EduFlow
+              </span>
+              <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--sidebar-muted)]">
+                Academic Edition
+              </span>
+            </div>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
@@ -174,8 +190,15 @@ export default function AppLayout({ children }: SidebarProps) {
           </button>
         </div>
 
+        {/* Section label */}
+        <div className="px-5 pt-4 pb-1">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--sidebar-muted)] opacity-80">
+            {isTeacher ? 'Faculty Workspace' : 'Student Workspace'}
+          </span>
+        </div>
+
         {/* Navigation list */}
-        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -193,16 +216,17 @@ export default function AppLayout({ children }: SidebarProps) {
                 style={{
                   backgroundColor: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
                   color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
+                  borderLeft: isActive ? '3px solid #356AE6' : '3px solid transparent',
                 }}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] ${
-                  isActive ? 'shadow-xs' : ''
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] ${
+                  isActive ? 'font-semibold shadow-xs' : ''
                 }`}
               >
                 <Icon
                   style={{ color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)' }}
-                  className="w-4 h-4 flex-shrink-0"
+                  className="w-4 h-4 flex-shrink-0 opacity-85"
                 />
-                <span>{item.label}</span>
+                <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
@@ -210,19 +234,25 @@ export default function AppLayout({ children }: SidebarProps) {
           {/* Secondary nav items */}
           <div
             style={{ borderColor: 'var(--sidebar-border)' }}
-            className="pt-4 mt-4 border-t space-y-1"
+            className="pt-3 mt-3 border-t space-y-0.5"
           >
+            <div className="px-2 pb-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--sidebar-muted)] opacity-80">
+                Preferences
+              </span>
+            </div>
+
             <button
               onClick={toggleTheme}
               style={{ color: 'var(--sidebar-muted)' }}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
             >
               {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-indigo-500" />
+                <Moon className="w-3.5 h-3.5 text-slate-700" />
               )}
-              <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
+              <span>{theme === 'dark' ? 'Light Appearance' : 'Dark Appearance'}</span>
             </button>
 
             <Link
@@ -232,13 +262,13 @@ export default function AppLayout({ children }: SidebarProps) {
                 backgroundColor: pathname === '/dashboard/profile' ? 'var(--sidebar-active-bg)' : 'transparent',
                 color: pathname === '/dashboard/profile' ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
               }}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
             >
               <UserIcon
                 style={{ color: pathname === '/dashboard/profile' ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)' }}
-                className="w-4 h-4"
+                className="w-3.5 h-3.5"
               />
-              <span>My Profile</span>
+              <span>Account Profile</span>
             </Link>
 
             <Link
@@ -248,24 +278,24 @@ export default function AppLayout({ children }: SidebarProps) {
                 backgroundColor: pathname === '/dashboard/settings' ? 'var(--sidebar-active-bg)' : 'transparent',
                 color: pathname === '/dashboard/settings' ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
               }}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
             >
               <Settings
                 style={{ color: pathname === '/dashboard/settings' ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)' }}
-                className="w-4 h-4"
+                className="w-3.5 h-3.5"
               />
               <span>Settings</span>
             </Link>
 
             <button
               onClick={() => {
-                alert('EduFlow AI Learning System - Grounded RAG with Course Materials & Real-time AI Quizzing.');
+                alert('EduFlow Academic Learning System • RAG Course Document Search & Interactive Evaluation.');
               }}
               style={{ color: 'var(--sidebar-muted)' }}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-hover-text)] transition-colors cursor-pointer text-left"
             >
-              <HelpCircle className="w-4 h-4" />
-              <span>Help & Docs</span>
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Reference Manual</span>
             </button>
           </div>
         </nav>
@@ -277,7 +307,7 @@ export default function AppLayout({ children }: SidebarProps) {
               backgroundColor: 'var(--sidebar-footer-bg)',
               borderTop: '1px solid var(--sidebar-border)',
             }}
-            className="p-3.5"
+            className="p-3"
           >
             <div className="flex items-center justify-between">
               <Link
@@ -285,7 +315,13 @@ export default function AppLayout({ children }: SidebarProps) {
                 className="flex items-center gap-2.5 overflow-hidden hover:opacity-85 transition-opacity cursor-pointer group flex-1"
                 title="View My Profile"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                <div
+                  className="w-7 h-7 rounded-md overflow-hidden font-mono font-medium text-xs flex items-center justify-center flex-shrink-0 border border-[var(--border-subtle)]"
+                  style={{
+                    backgroundColor: 'var(--bg-subtle)',
+                    color: 'var(--text-main)',
+                  }}
+                >
                   {user.profileImage ? (
                     <img
                       src={getAvatarUrl(user.profileImage)}
@@ -302,15 +338,15 @@ export default function AppLayout({ children }: SidebarProps) {
                 <div className="overflow-hidden flex-1">
                   <div
                     style={{ color: 'var(--sidebar-text)' }}
-                    className="text-xs font-semibold truncate group-hover:text-indigo-400 transition-colors"
+                    className="text-xs font-medium truncate"
                   >
                     {user.name}
                   </div>
                   <div
                     style={{ color: 'var(--sidebar-muted)' }}
-                    className="text-[10px] truncate"
+                    className="text-[10px] font-mono uppercase tracking-wider truncate"
                   >
-                    {user.role === 'PROFESSOR' ? 'Professor' : user.role === 'ADMIN' ? 'Admin' : 'Student'}
+                    {user.role === 'PROFESSOR' ? 'Faculty' : user.role === 'ADMIN' ? 'Admin' : 'Student'}
                   </div>
                 </div>
               </Link>
@@ -318,10 +354,10 @@ export default function AppLayout({ children }: SidebarProps) {
               <button
                 onClick={logout}
                 style={{ color: 'var(--sidebar-muted)' }}
-                className="p-1.5 hover:text-red-500 transition-colors cursor-pointer"
+                className="p-1.5 hover:text-red-500 transition-colors cursor-pointer rounded"
                 title="Sign out"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -336,25 +372,28 @@ export default function AppLayout({ children }: SidebarProps) {
             backgroundColor: 'var(--header-bg)',
             borderBottom: '1px solid var(--header-border)',
           }}
-          className="px-6 lg:px-8 py-3 flex items-center justify-between gap-4 sticky top-0 z-30 w-full"
+          className="px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4 sticky top-0 z-30 w-full backdrop-blur-md"
         >
           {/* Global search input */}
           <div className="relative max-w-md w-full flex items-center">
             <Search
               style={{ color: 'var(--text-muted)' }}
-              className="w-4 h-4 absolute left-3.5 pointer-events-none"
+              className="w-3.5 h-3.5 absolute left-3.5 pointer-events-none opacity-70"
             />
             <input
               type="text"
-              placeholder="Search courses, topics or ask anything..."
+              placeholder="Search enrolled courses, syllabi, notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
+              className="search-input pr-10"
             />
+            <kbd className="hidden sm:inline-block absolute right-3 text-[10px] font-mono px-1.5 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-subtle)] pointer-events-none">
+              /
+            </kbd>
           </div>
 
           {/* Right header actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={toggleTheme}
               style={{
@@ -362,14 +401,14 @@ export default function AppLayout({ children }: SidebarProps) {
                 borderColor: 'var(--border-color)',
                 color: 'var(--text-muted)',
               }}
-              className="p-2 rounded-full border hover:opacity-80 transition-opacity cursor-pointer"
+              className="p-1.5 rounded-md border hover:opacity-80 transition-opacity cursor-pointer"
               aria-label="Toggle Theme"
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Appearance`}
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-indigo-500" />
+                <Moon className="w-4 h-4 text-slate-700" />
               )}
             </button>
 

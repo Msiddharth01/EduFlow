@@ -108,21 +108,21 @@ export default function TeacherStudentsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-indigo-950/60 text-indigo-400 border border-indigo-800/40 uppercase">
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30 uppercase">
                 Teacher Roster
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--text-main)] mt-1">
               Enrolled Students & Performance
             </h1>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">
+            <p className="text-xs md:text-sm text-[var(--text-muted)] mt-1">
               Track student engagement, quiz attempts, and learning support needs across all your courses.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/teacher"
-              className="px-3.5 py-2 bg-[#0e1628] hover:bg-[#16223b] border border-[#1e2d4d] text-gray-300 text-xs font-semibold rounded-lg transition-all"
+              className="px-3.5 py-2 app-card-subtle text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs font-semibold rounded-lg transition-all"
             >
               Back to Overview
             </Link>
@@ -131,49 +131,49 @@ export default function TeacherStudentsPage() {
 
         {/* Metric Pill Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="text-xs text-gray-400 font-medium">Total Students</div>
-            <div className="text-xl font-black text-white mt-0.5">{students.length}</div>
+          <div className="p-3.5 rounded-xl app-card">
+            <div className="text-xs text-[var(--text-muted)] font-medium">Total Students</div>
+            <div className="text-xl font-black text-[var(--text-main)] mt-0.5">{students.length}</div>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="text-xs text-emerald-400 font-medium">Good Standing (≥60%)</div>
-            <div className="text-xl font-black text-emerald-400 mt-0.5">{goodCount}</div>
+          <div className="p-3.5 rounded-xl app-card">
+            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Good Standing (≥60%)</div>
+            <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{goodCount}</div>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="text-xs text-rose-400 font-medium">Needs Attention (&lt;60%)</div>
-            <div className="text-xl font-black text-rose-400 mt-0.5">{supportCount}</div>
+          <div className="p-3.5 rounded-xl app-card">
+            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium">Needs Attention (&lt;60%)</div>
+            <div className="text-xl font-black text-rose-600 dark:text-rose-400 mt-0.5">{supportCount}</div>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-            <div className="text-xs text-amber-400 font-medium">No Attempts Yet</div>
-            <div className="text-xl font-black text-amber-400 mt-0.5">{noAttemptsCount}</div>
+          <div className="p-3.5 rounded-xl app-card">
+            <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">No Attempts Yet</div>
+            <div className="text-xl font-black text-amber-600 dark:text-amber-400 mt-0.5">{noAttemptsCount}</div>
           </div>
         </div>
 
         {/* Search, Filter & Tabs Toolbar */}
-        <div className="p-4 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
+        <div className="p-4 rounded-xl app-card space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search student by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#080d1a] border border-[#1c2944] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-9 pr-4 py-2 app-input text-xs"
               />
             </div>
 
             {/* Course Filter Dropdown */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 flex items-center gap-1.5">
+              <span className="text-xs text-[var(--text-muted)] flex items-center gap-1.5">
                 <Filter className="w-3.5 h-3.5" />
                 Course:
               </span>
               <select
                 value={selectedCourseFilter}
                 onChange={(e) => setSelectedCourseFilter(e.target.value)}
-                className="px-3 py-1.5 bg-[#080d1a] border border-[#1c2944] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                className="px-3 py-1.5 app-input text-xs w-auto"
               >
                 <option value="ALL">All Courses</option>
                 {allCourses.map((c) => (
@@ -186,7 +186,7 @@ export default function TeacherStudentsPage() {
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-[#18233a]">
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-[var(--border-subtle)]">
             {[
               { id: 'ALL', label: `All (${students.length})` },
               { id: 'NEEDS_SUPPORT', label: `Needs Attention (${supportCount})` },
@@ -196,10 +196,10 @@ export default function TeacherStudentsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-[#080d1a] text-gray-400 hover:text-white hover:bg-[#121c32] border border-[#1b263e]'
+                    ? 'bg-[var(--primary)] text-white shadow-xs'
+                    : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-color)]'
                 }`}
               >
                 {tab.label}
@@ -210,13 +210,13 @@ export default function TeacherStudentsPage() {
 
         {/* Loading & Error States */}
         {loading && (
-          <div className="p-12 text-center text-gray-400 bg-[#0d1425] border border-[#1b263e] rounded-xl text-xs">
+          <div className="p-12 text-center text-[var(--text-muted)] app-card rounded-xl text-xs">
             Loading students roster...
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -224,15 +224,15 @@ export default function TeacherStudentsPage() {
 
         {/* Students Table */}
         {!loading && !error && (
-          <div className="rounded-xl bg-[#0d1425] border border-[#1b263e] overflow-hidden">
+          <div className="rounded-xl app-card overflow-hidden">
             {filteredStudents.length === 0 ? (
-              <div className="p-12 text-center text-gray-400 text-xs">
+              <div className="p-12 text-center text-[var(--text-muted)] text-xs">
                 No students match your selected search or filter criteria.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#090e1d] text-gray-400 uppercase tracking-wider font-semibold border-b border-[#1b263e]">
+                  <thead className="bg-[var(--bg-subtle)] text-[var(--text-muted)] uppercase tracking-wider font-semibold border-b border-[var(--border-color)]">
                     <tr>
                       <th className="py-3 px-4">Student</th>
                       <th className="py-3 px-4">Enrolled Courses</th>
@@ -243,12 +243,12 @@ export default function TeacherStudentsPage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#162137]">
+                  <tbody className="divide-y divide-[var(--border-subtle)]">
                     {filteredStudents.map((st) => (
-                      <tr key={st.id} className="hover:bg-[#10192e] transition-colors">
+                      <tr key={st.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xs ring-1 ring-indigo-500/30">
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-[var(--primary)] text-white font-bold text-xs ring-1 ring-[var(--primary)]/30">
                               {st.profileImage ? (
                                 <img
                                   src={getAvatarUrl(st.profileImage)}
@@ -263,8 +263,8 @@ export default function TeacherStudentsPage() {
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-white text-sm">{st.name}</div>
-                              <div className="text-gray-400 text-[11px] font-mono">{st.email}</div>
+                              <div className="font-bold text-[var(--text-main)] text-sm">{st.name}</div>
+                              <div className="text-[var(--text-muted)] text-[11px] font-mono">{st.email}</div>
                             </div>
                           </div>
                         </td>
@@ -273,50 +273,50 @@ export default function TeacherStudentsPage() {
                             {(st.enrolledCourses || st.courses || []).map((c) => (
                               <span
                                 key={c.courseId}
-                                className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141d33] text-indigo-300 border border-indigo-900/40"
+                                className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--bg-subtle)] text-[var(--primary)] border border-[var(--border-color)]"
                               >
                                 {c.courseCode}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                        <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                           {st.totalAttempts}
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           {st.averageScore !== null ? (
                             <span
                               className={`font-black text-sm ${
-                                st.averageScore >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                                st.averageScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                               }`}
                             >
                               {st.averageScore}%
                             </span>
                           ) : (
-                            <span className="text-gray-500 text-xs italic">N/A</span>
+                            <span className="text-[var(--text-subtle)] text-xs italic">N/A</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4">
                           {st.status === 'GOOD' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                               <CheckCircle className="w-3 h-3" />
                               Good Standing
                             </span>
                           )}
                           {st.status === 'NEEDS_SUPPORT' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                               <AlertCircle className="w-3 h-3" />
                               Needs Attention (&lt;60%)
                             </span>
                           )}
                           {st.status === 'NO_ATTEMPTS' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                               <HelpCircle className="w-3 h-3" />
                               No Attempts
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-gray-400 text-[11px]">
+                        <td className="py-3.5 px-4 text-[var(--text-muted)] text-[11px]">
                           {st.lastActivity
                             ? new Date(st.lastActivity).toLocaleDateString()
                             : 'N/A'}
@@ -324,7 +324,7 @@ export default function TeacherStudentsPage() {
                         <td className="py-3.5 px-4 text-right">
                           <button
                             onClick={() => setSelectedStudent(st)}
-                            className="px-2.5 py-1 rounded bg-indigo-600/15 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 text-xs font-semibold transition-all inline-flex items-center gap-1"
+                            className="px-2.5 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white border border-[var(--primary)]/30 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                           >
                             <span>Inspect</span>
                             <ArrowRight className="w-3 h-3" />

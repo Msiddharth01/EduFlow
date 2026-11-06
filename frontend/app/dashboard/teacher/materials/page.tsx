@@ -155,21 +155,21 @@ export default function TeacherMaterialsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide bg-indigo-950/60 text-indigo-400 border border-indigo-800/40 uppercase">
+              <span className="badge badge-accent uppercase">
                 Content Management
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--text-main)] mt-1">
               Course Materials & Documents
             </h1>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">
+            <p className="text-xs md:text-sm text-[var(--text-muted)] mt-1">
               Upload PDF notes, monitor RAG vector indexing, and generate material-linked practice quizzes.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowUploadModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md shadow-indigo-600/25"
+              className="btn-primary text-xs"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload PDF Material</span>
@@ -182,12 +182,12 @@ export default function TeacherMaterialsPage() {
           <div
             className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
               actionMsg.type === 'success'
-                ? 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300'
-                : 'bg-rose-950/40 border-rose-800/40 text-rose-300'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300'
             }`}
           >
             <span>{actionMsg.text}</span>
-            <button onClick={() => setActionMsg(null)} className="text-gray-400 hover:text-white">
+            <button onClick={() => setActionMsg(null)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
               ✕
             </button>
           </div>
@@ -195,13 +195,13 @@ export default function TeacherMaterialsPage() {
 
         {/* Loading & Error States */}
         {loading && (
-          <div className="p-12 text-center text-gray-400 bg-[#0d1425] border border-[#1b263e] rounded-xl text-xs">
+          <div className="app-card p-12 text-center text-[var(--text-muted)] text-xs">
             Loading course materials...
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -209,14 +209,14 @@ export default function TeacherMaterialsPage() {
 
         {/* Materials Table */}
         {!loading && !error && (
-          <div className="rounded-xl bg-[#0d1425] border border-[#1b263e] overflow-hidden">
+          <div className="app-card overflow-hidden">
             {materials.length === 0 ? (
-              <div className="p-12 text-center text-gray-400 text-xs space-y-3">
-                <FileText className="w-8 h-8 text-gray-600 mx-auto" />
+              <div className="p-12 text-center text-[var(--text-muted)] text-xs space-y-3">
+                <FileText className="w-8 h-8 text-[var(--text-muted)] mx-auto" />
                 <p>No materials have been uploaded to your courses yet.</p>
                 <button
                   onClick={() => setShowUploadModal(true)}
-                  className="px-3.5 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
+                  className="btn-primary text-xs"
                 >
                   Upload your first PDF
                 </button>
@@ -224,7 +224,7 @@ export default function TeacherMaterialsPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#090e1d] text-gray-400 uppercase tracking-wider font-semibold border-b border-[#1b263e]">
+                  <thead className="app-table-header uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-4">Document Title</th>
                       <th className="py-3 px-4">Course</th>
@@ -235,64 +235,64 @@ export default function TeacherMaterialsPage() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#162137]">
+                  <tbody className="divide-y divide-[var(--border-color)]">
                     {materials.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#10192e] transition-colors">
+                      <tr key={m.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-white text-sm flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
+                          <div className="font-bold text-[var(--text-main)] text-sm flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-[var(--primary)] shrink-0" />
                             <span>{m.title}</span>
                           </div>
-                          <div className="text-gray-400 text-[11px] font-mono mt-0.5 ml-6">
+                          <div className="text-[var(--text-muted)] text-[11px] font-mono mt-0.5 ml-6">
                             {m.fileName}
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141d33] text-indigo-300 border border-indigo-900/40">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/20">
                             {m.courseCode}
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
                           {m.status === 'READY' && (
                             <div className="space-y-1">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                 <CheckCircle className="w-3 h-3" />
                                 RAG Ready
                               </span>
                               {m.errorMessage && (
-                                <div className="text-[10px] text-gray-400 max-w-xs truncate" title={m.errorMessage}>
+                                <div className="text-[10px] text-[var(--text-muted)] max-w-xs truncate" title={m.errorMessage}>
                                   {m.errorMessage}
                                 </div>
                               )}
                             </div>
                           )}
                           {m.status === 'PROCESSING' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40 animate-pulse">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
                               <Clock className="w-3 h-3 animate-spin" />
                               Extracting Text
                             </span>
                           )}
                           {m.status === 'FAILED' && (
                             <div className="space-y-1">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                                 <AlertCircle className="w-3 h-3" />
                                 Processing Failed
                               </span>
                               {m.errorMessage && (
-                                <div className="text-[10px] text-rose-400 max-w-xs truncate" title={m.errorMessage}>
+                                <div className="text-[10px] text-rose-600 dark:text-rose-400 max-w-xs truncate" title={m.errorMessage}>
                                   {m.errorMessage}
                                 </div>
                               )}
                             </div>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                        <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                           {m.chunksCount}
                         </td>
-                        <td className="py-3.5 px-4 text-center font-bold text-indigo-300">
+                        <td className="py-3.5 px-4 text-center font-bold text-[var(--primary)]">
                           {m.quizzes.length}
                         </td>
-                        <td className="py-3.5 px-4 text-gray-400 text-[11px]">
+                        <td className="py-3.5 px-4 text-[var(--text-muted)] text-[11px]">
                           {new Date(m.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -301,7 +301,7 @@ export default function TeacherMaterialsPage() {
                               onClick={() => handleRetryProcessing(m.id)}
                               disabled={retryingMaterialId === m.id}
                               title="Reprocess PDF extraction & OCR fallback"
-                              className="px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                              className="btn-secondary text-xs inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                             >
                               <RefreshCw className={`w-3 h-3 ${retryingMaterialId === m.id ? 'animate-spin' : ''}`} />
                               <span>{retryingMaterialId === m.id ? 'Reprocessing...' : 'Reprocess'}</span>
@@ -311,7 +311,7 @@ export default function TeacherMaterialsPage() {
                               <button
                                 onClick={() => handleGenerateQuiz(m.id)}
                                 disabled={generatingQuizId === m.id}
-                                className="px-2.5 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                                className="px-2.5 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white border border-[var(--primary)]/20 text-xs font-semibold transition-all inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                               >
                                 <Sparkles className="w-3 h-3" />
                                 <span>{generatingQuizId === m.id ? 'Generating...' : 'AI Quiz'}</span>
@@ -320,7 +320,7 @@ export default function TeacherMaterialsPage() {
 
                             <Link
                               href={`/dashboard/courses/${m.courseId}`}
-                              className="px-2.5 py-1 rounded bg-[#162137] hover:bg-[#1e2d4d] text-gray-300 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1"
+                              className="btn-secondary text-xs inline-flex items-center gap-1"
                             >
                               <span>Workspace</span>
                               <ChevronRight className="w-3 h-3" />

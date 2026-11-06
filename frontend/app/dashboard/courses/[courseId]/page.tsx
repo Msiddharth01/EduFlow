@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useEffect, useState, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -496,9 +496,9 @@ function CourseWorkspaceContent() {
   if (loading || !course) {
     return (
       <AppLayout>
-        <div className="min-h-screen flex items-center justify-center text-gray-400">
+        <div className="min-h-screen flex items-center justify-center text-[var(--text-muted)]">
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
             <span>Loading Course Workspace...</span>
           </div>
         </div>
@@ -512,30 +512,30 @@ function CourseWorkspaceContent() {
     <AppLayout>
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
         {/* Workspace Top Nav & Breadcrumbs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#1b253b]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/courses"
-              className="p-2 rounded-lg bg-[#0e1628] hover:bg-[#162139] border border-[#1e2a45] text-gray-300 hover:text-white transition-colors"
+              className="p-2 rounded-lg bg-[var(--bg-subtle)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded text-xs font-bold tracking-wide bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                <span className="px-2 py-0.5 rounded text-xs font-bold tracking-wide bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                   {course.code}
                 </span>
                 <span
                   className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
                     isProfessor
-                      ? 'bg-purple-950/50 text-purple-300 border border-purple-800/40'
-                      : 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/40'
+                      ? 'bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30'
+                      : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                   }`}
                 >
                   {userRole}
                 </span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-white mt-1">{course.title}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--text-main)] mt-1">{course.title}</h1>
             </div>
           </div>
 
@@ -544,7 +544,7 @@ function CourseWorkspaceContent() {
               <>
                 <button
                   onClick={() => setActiveTab('materials')}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                  className="btn-primary cursor-pointer text-xs"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   <span>Upload Material</span>
@@ -556,7 +556,7 @@ function CourseWorkspaceContent() {
                     onClick={() => setShowActionsMenu((prev) => !prev)}
                     title="Course options"
                     aria-label="Course options"
-                    className="p-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center border hover:border-indigo-500/50"
+                    className="p-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center border hover:border-[var(--primary)]"
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--border-color)',
@@ -579,10 +579,10 @@ function CourseWorkspaceContent() {
                           setShowActionsMenu(false);
                           handleOpenEditModal();
                         }}
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium hover:bg-indigo-500/10 transition-colors text-left cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium hover:bg-[var(--primary-light)] transition-colors text-left cursor-pointer"
                         style={{ color: 'var(--text-main)' }}
                       >
-                        <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
+                        <Edit3 className="w-3.5 h-3.5 text-[var(--primary)]" />
                         <span>Edit Course</span>
                       </button>
 
@@ -594,9 +594,9 @@ function CourseWorkspaceContent() {
                           setDeleteError(null);
                           setShowDeleteModal(true);
                         }}
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
                         <span>Delete Course</span>
                       </button>
                     </div>
@@ -608,7 +608,7 @@ function CourseWorkspaceContent() {
         </div>
 
         {/* Workspace Tabs Navigation */}
-        <div className="flex items-center gap-1 border-b border-[#1b253b] overflow-x-auto pb-px">
+        <div className="flex items-center gap-1 border-b border-[var(--border-color)] overflow-x-auto pb-px">
           {[
             { id: 'overview', label: 'Overview', icon: BookOpen },
             { id: 'materials', label: `Materials (${course.materials.length})`, icon: FileText },
@@ -636,11 +636,11 @@ function CourseWorkspaceContent() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   active
-                    ? 'border-indigo-500 text-indigo-300 bg-indigo-500/10 rounded-t-lg'
-                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#0d1425]'
+                    ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-light)] rounded-t-lg'
+                    : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-gray-500'}`} />
+                <Icon className={`w-4 h-4 ${active ? 'text-[var(--primary)]' : 'text-[var(--text-subtle)]'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -660,24 +660,24 @@ function CourseWorkspaceContent() {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-6">
-              <div className="p-6 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-                <h2 className="text-base font-bold text-white">Course Overview & Syllabus</h2>
-                <p className="text-sm text-gray-300 leading-relaxed">
+              <div className="p-6 rounded-xl app-card space-y-4">
+                <h2 className="text-base font-bold text-[var(--text-main)]">Course Overview & Syllabus</h2>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                   {course.description || 'No detailed syllabus provided for this course yet.'}
                 </p>
 
-                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#18233a]">
-                  <div className="p-3 rounded-lg bg-[#0e1628] border border-[#1c273e]">
-                    <div className="text-xs text-gray-400">Total Materials</div>
-                    <div className="text-xl font-bold text-white mt-0.5">{course.materials.length}</div>
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[var(--border-subtle)]">
+                  <div className="p-3 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-color)]">
+                    <div className="text-xs text-[var(--text-muted)]">Total Materials</div>
+                    <div className="text-xl font-bold text-[var(--text-main)] mt-0.5">{course.materials.length}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0e1628] border border-[#1c273e]">
-                    <div className="text-xs text-gray-400">Quizzes</div>
-                    <div className="text-xl font-bold text-white mt-0.5">{courseQuizzes.length}</div>
+                  <div className="p-3 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-color)]">
+                    <div className="text-xs text-[var(--text-muted)]">Quizzes</div>
+                    <div className="text-xl font-bold text-[var(--text-main)] mt-0.5">{courseQuizzes.length}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0e1628] border border-[#1c273e]">
-                    <div className="text-xs text-gray-400">AI Tutor Index</div>
-                    <div className="text-xl font-bold text-emerald-400 mt-0.5">
+                  <div className="p-3 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-color)]">
+                    <div className="text-xs text-[var(--text-muted)]">AI Tutor Index</div>
+                    <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                       {course.materials.filter((m) => m.status === 'READY').length} Ready
                     </div>
                   </div>
@@ -688,32 +688,32 @@ function CourseWorkspaceContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={() => setActiveTab('tutor')}
-                  className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] hover:border-indigo-500/50 hover:bg-[#10192e] text-left transition-all space-y-2 group"
+                  className="p-5 rounded-xl app-card hover:border-[var(--primary)] text-left transition-all space-y-2 group cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-lg bg-indigo-600/15 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <span className="p-2 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
                       <MessageSquare className="w-4 h-4" />
                     </span>
-                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-indigo-400" />
+                    <ChevronRight className="w-4 h-4 text-[var(--text-subtle)] group-hover:text-[var(--primary)]" />
                   </div>
-                  <div className="text-sm font-semibold text-white">Open AI Tutor Workspace</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-sm font-semibold text-[var(--text-main)]">Open AI Tutor Workspace</div>
+                  <div className="text-xs text-[var(--text-muted)]">
                     Ask questions grounded directly in lecture slides and PDF notes.
                   </div>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('quizzes')}
-                  className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] hover:border-emerald-500/50 hover:bg-[#10192e] text-left transition-all space-y-2 group"
+                  className="p-5 rounded-xl app-card hover:border-emerald-500/50 text-left transition-all space-y-2 group cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-lg bg-emerald-600/15 text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <span className="p-2 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                       <CheckCircle className="w-4 h-4" />
                     </span>
-                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-emerald-400" />
+                    <ChevronRight className="w-4 h-4 text-[var(--text-subtle)] group-hover:text-emerald-500" />
                   </div>
-                  <div className="text-sm font-semibold text-white">Take Practice Quizzes</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-sm font-semibold text-[var(--text-main)]">Take Practice Quizzes</div>
+                  <div className="text-xs text-[var(--text-muted)]">
                     Test your understanding with auto-evaluated MCQs and explanations.
                   </div>
                 </button>
@@ -722,26 +722,26 @@ function CourseWorkspaceContent() {
 
             {/* Sidebar Overview Stats */}
             <div className="space-y-4">
-              <div className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+              <div className="p-5 rounded-xl app-card space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
                   Course Metadata
                 </h3>
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-[#18233a]">
-                    <span className="text-gray-400">Course Code</span>
-                    <span className="font-semibold text-white">{course.code}</span>
+                  <div className="flex justify-between py-1 border-b border-[var(--border-subtle)]">
+                    <span className="text-[var(--text-muted)]">Course Code</span>
+                    <span className="font-semibold text-[var(--text-main)]">{course.code}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[#18233a]">
-                    <span className="text-gray-400">Instructor</span>
-                    <span className="font-semibold text-white">{course.professor || 'Prof. Faculty'}</span>
+                  <div className="flex justify-between py-1 border-b border-[var(--border-subtle)]">
+                    <span className="text-[var(--text-muted)]">Instructor</span>
+                    <span className="font-semibold text-[var(--text-main)]">{course.professor || 'Prof. Faculty'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[#18233a]">
-                    <span className="text-gray-400">Your Role</span>
-                    <span className="font-semibold text-indigo-400">{userRole}</span>
+                  <div className="flex justify-between py-1 border-b border-[var(--border-subtle)]">
+                    <span className="text-[var(--text-muted)]">Your Role</span>
+                    <span className="font-semibold text-[var(--primary)]">{userRole}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-gray-400">Created On</span>
-                    <span className="text-gray-300">{new Date(course.createdAt).toLocaleDateString()}</span>
+                    <span className="text-[var(--text-muted)]">Created On</span>
+                    <span className="text-[var(--text-secondary)]">{new Date(course.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
@@ -754,9 +754,9 @@ function CourseWorkspaceContent() {
           <div className="space-y-6">
             {/* Upload Area for Professors */}
             {isProfessor && (
-              <div className="p-5 rounded-xl bg-[#0d1425] border border-indigo-900/30 space-y-4">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Upload className="w-4 h-4 text-indigo-400" />
+              <div className="p-5 rounded-xl app-card space-y-4">
+                <h2 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-[var(--primary)]" />
                   <span>Upload Lecture Material (PDF)</span>
                 </h2>
 
@@ -764,8 +764,8 @@ function CourseWorkspaceContent() {
                   <div
                     className={`p-3 rounded-lg text-xs border ${
                       uploadMsg.type === 'success'
-                        ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-300'
-                        : 'bg-red-950/30 border-red-800/40 text-red-300'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
                     }`}
                   >
                     {uploadMsg.text}
@@ -774,11 +774,11 @@ function CourseWorkspaceContent() {
 
                 <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                       Material Title
                     </label>
                     <input
-                      className="w-full px-3 py-2 bg-[#090e1c] border border-[#1e2a44] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                      className="app-input text-xs"
                       placeholder="e.g. Unit 1: Neural Networks & Transformers"
                       value={uploadTitle}
                       onChange={(e) => setUploadTitle(e.target.value)}
@@ -786,14 +786,14 @@ function CourseWorkspaceContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                       Select PDF Document
                     </label>
                     <input
                       type="file"
                       accept="application/pdf"
                       onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
-                      className="w-full px-2 py-1.5 bg-[#090e1c] border border-[#1e2a44] rounded-lg text-xs text-gray-300 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-indigo-600 file:text-white"
+                      className="app-input text-xs py-1.5 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-[var(--primary)] file:text-white"
                       required
                     />
                   </div>
@@ -802,7 +802,7 @@ function CourseWorkspaceContent() {
                     <button
                       type="submit"
                       disabled={uploading}
-                      className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                      className="btn-primary w-full text-xs cursor-pointer disabled:opacity-50"
                     >
                       {uploading ? (
                         <>
@@ -823,13 +823,13 @@ function CourseWorkspaceContent() {
 
             {/* Materials List */}
             <div className="space-y-3">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 Uploaded Materials ({course.materials.length})
               </h2>
 
               {course.materials.length === 0 ? (
-                <div className="p-8 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-2">
-                  <FileText className="w-8 h-8 text-gray-500 mx-auto" />
+                <div className="p-8 text-center app-card text-xs text-[var(--text-muted)] space-y-2">
+                  <FileText className="w-8 h-8 mx-auto opacity-50" />
                   <p>No materials have been uploaded for this course yet.</p>
                 </div>
               ) : (
@@ -837,16 +837,16 @@ function CourseWorkspaceContent() {
                   {course.materials.map((m) => (
                     <div
                       key={m.id}
-                      className="p-4 rounded-xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between gap-3"
+                      className="p-4 rounded-xl app-card flex flex-col justify-between gap-3"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="p-2.5 rounded-lg bg-indigo-950/60 border border-indigo-800/40 text-indigo-400 flex-shrink-0">
+                          <div className="p-2.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30 flex-shrink-0">
                             <FileText className="w-5 h-5" />
                           </div>
                           <div className="overflow-hidden">
-                            <div className="text-sm font-semibold text-white truncate">{m.title}</div>
-                            <div className="text-[11px] text-gray-400 truncate">
+                            <div className="text-sm font-semibold text-[var(--text-main)] truncate">{m.title}</div>
+                            <div className="text-[11px] text-[var(--text-muted)] truncate">
                               {m.fileName} · {new Date(m.createdAt).toLocaleDateString()}
                             </div>
                           </div>
@@ -856,10 +856,10 @@ function CourseWorkspaceContent() {
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                               m.status === 'READY'
-                                ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                                 : m.status === 'PROCESSING'
-                                ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40 animate-pulse'
-                                : 'bg-red-950/60 text-red-300 border border-red-800/40'
+                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse'
+                                : 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30'
                             }`}
                           >
                             {m.status}
@@ -869,7 +869,7 @@ function CourseWorkspaceContent() {
                             <button
                               onClick={() => handleRetryMaterial(m.id)}
                               disabled={retryingMaterialId === m.id}
-                              className="px-2.5 py-1 text-xs bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 rounded border border-amber-800/50 transition-colors flex items-center gap-1.5"
+                              className="px-2.5 py-1 text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 rounded border border-amber-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                               title="Retry processing this document"
                             >
                               <RefreshCw className={`w-3 h-3 ${retryingMaterialId === m.id ? 'animate-spin' : ''}`} />
@@ -884,18 +884,18 @@ function CourseWorkspaceContent() {
                                 return (
                                   <Link
                                     href={`/dashboard/quizzes/${matQuiz.id}`}
-                                    className="px-2.5 py-1 text-xs bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 rounded border border-emerald-800/40 transition-colors flex items-center gap-1"
+                                    className="px-2.5 py-1 text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/30 transition-colors flex items-center gap-1"
                                     title="Take Practice Quiz for this material"
                                   >
-                                    <CheckCircle className="w-3 h-3 text-emerald-400" />
+                                    <CheckCircle className="w-3 h-3 text-emerald-500" />
                                     <span>Quiz ({matQuiz.questionCount}Q)</span>
                                   </Link>
                                 );
                               }
                               if (matQuiz.status === 'PROCESSING') {
                                 return (
-                                  <span className="px-2.5 py-1 text-xs bg-amber-950/60 text-amber-300 rounded border border-amber-800/40 flex items-center gap-1">
-                                    <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />
+                                  <span className="px-2.5 py-1 text-xs bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded border border-amber-500/30 flex items-center gap-1">
+                                    <RefreshCw className="w-3 h-3 animate-spin text-amber-500" />
                                     <span>Quiz Generating...</span>
                                   </span>
                                 );
@@ -904,7 +904,7 @@ function CourseWorkspaceContent() {
                                 return (
                                   <button
                                     onClick={() => handleRetryQuiz(matQuiz.id)}
-                                    className="px-2.5 py-1 text-xs bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800/40 flex items-center gap-1"
+                                    className="px-2.5 py-1 text-xs bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 rounded border border-rose-500/30 flex items-center gap-1 cursor-pointer"
                                     title="Retry quiz generation"
                                   >
                                     <span>Retry Quiz</span>
@@ -916,10 +916,10 @@ function CourseWorkspaceContent() {
                               <button
                                 onClick={() => handleGenerateQuizForMaterial(m.id)}
                                 disabled={generatingQuizMaterialId === m.id || aiQuizLoading}
-                                className="px-2.5 py-1 text-xs bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 rounded border border-indigo-800/40 transition-colors flex items-center gap-1"
+                                className="px-2.5 py-1 text-xs bg-[var(--primary-light)] hover:bg-[var(--primary)] hover:text-white text-[var(--primary)] rounded border border-[var(--primary)]/30 transition-colors flex items-center gap-1 cursor-pointer"
                                 title="Generate AI practice quiz for this material"
                               >
-                                <Sparkles className="w-3 h-3 text-indigo-400" />
+                                <Sparkles className="w-3 h-3" />
                                 <span>{generatingQuizMaterialId === m.id ? 'Generating...' : 'Generate Quiz'}</span>
                               </button>
                             );
@@ -931,7 +931,7 @@ function CourseWorkspaceContent() {
                               setTutorMaterialFilter(m.id);
                               setActiveTab('tutor');
                             }}
-                            className="px-2.5 py-1 text-xs bg-[#162139] hover:bg-[#1e2d4e] text-indigo-300 rounded border border-[#243456] transition-colors"
+                            className="px-2.5 py-1 text-xs bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--primary)] rounded border border-[var(--border-color)] transition-colors cursor-pointer"
                           >
                             Split View →
                           </button>
@@ -939,8 +939,8 @@ function CourseWorkspaceContent() {
                       </div>
 
                       {m.status === 'FAILED' && m.errorMessage && (
-                        <div className="text-[11px] text-red-400 bg-red-950/30 border border-red-900/40 rounded-lg p-2 flex items-start gap-2">
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-red-400" />
+                        <div className="text-[11px] text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg p-2 flex items-start gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-red-500" />
                           <span>{m.errorMessage}</span>
                         </div>
                       )}
@@ -956,11 +956,11 @@ function CourseWorkspaceContent() {
         {activeTab === 'tutor' && (
           <div className="space-y-4">
             {/* Top Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#0d1425] border border-[#1b263e] rounded-xl text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 app-card rounded-xl text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-gray-400 font-medium">Material Context:</span>
+                <span className="text-[var(--text-muted)] font-medium">Material Context:</span>
                 <select
-                  className="bg-[#090e1c] border border-[#1e2a44] rounded px-2.5 py-1 text-white focus:outline-none focus:border-indigo-500"
+                  className="app-input text-xs py-1 px-2.5 rounded w-auto"
                   value={tutorMaterialFilter}
                   onChange={(e) => {
                     setTutorMaterialFilter(e.target.value);
@@ -979,13 +979,13 @@ function CourseWorkspaceContent() {
 
               {/* Quick Prompts */}
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-gray-500">Suggested:</span>
+                <span className="text-[var(--text-subtle)]">Suggested:</span>
                 {['Explain this topic simply', 'Key formulas and definitions', 'Summarize main points'].map(
                   (prompt) => (
                     <button
                       key={prompt}
                       onClick={() => handleAskTutor(prompt)}
-                      className="px-2.5 py-1 bg-[#131d33] hover:bg-indigo-950/60 border border-[#23314f] text-gray-300 hover:text-indigo-300 rounded text-[11px] transition-colors"
+                      className="px-2.5 py-1 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--primary)] rounded text-[11px] transition-colors cursor-pointer"
                     >
                       {prompt}
                     </button>
@@ -997,10 +997,10 @@ function CourseWorkspaceContent() {
             {/* Split Screen Container */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[650px]">
               {/* LEFT: PDF Viewer */}
-              <div className="bg-[#0b101f] border border-[#1b263e] rounded-xl overflow-hidden flex flex-col">
-                <div className="p-3 bg-[#0d1425] border-b border-[#1b263e] flex items-center justify-between text-xs text-gray-300">
+              <div className="app-card rounded-xl overflow-hidden flex flex-col">
+                <div className="p-3 bg-[var(--bg-subtle)] border-b border-[var(--border-color)] flex items-center justify-between text-xs text-[var(--text-main)]">
                   <div className="flex items-center gap-2 truncate">
-                    <FileText className="w-4 h-4 text-indigo-400" />
+                    <FileText className="w-4 h-4 text-[var(--primary)]" />
                     <span className="font-semibold truncate">
                       {selectedMaterialForSplit ? selectedMaterialForSplit.title : 'No Material Selected'}
                     </span>
@@ -1010,7 +1010,7 @@ function CourseWorkspaceContent() {
                       href={pdfBlobUrl || materialApi.getFileUrlWithToken(selectedMaterialForSplit.id)}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 transition-colors"
+                      className="text-[var(--primary)] hover:opacity-80 font-medium flex items-center gap-1 transition-opacity"
                       title="Open PDF in new tab"
                     >
                       <span>New Tab</span>
@@ -1019,21 +1019,21 @@ function CourseWorkspaceContent() {
                   )}
                 </div>
 
-                <div className="flex-1 bg-[#090d18] relative">
+                <div className="flex-1 bg-[var(--bg-main)] relative">
                   {selectedMaterialForSplit ? (
                     pdfLoading ? (
-                      <div className="h-full flex items-center justify-center text-center p-6 text-gray-400">
+                      <div className="h-full flex items-center justify-center text-center p-6 text-[var(--text-muted)]">
                         <div className="space-y-3">
-                          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
                           <p className="text-xs">Loading authentic course PDF...</p>
                         </div>
                       </div>
                     ) : pdfError ? (
-                      <div className="h-full flex items-center justify-center text-center p-6 text-gray-400">
-                        <div className="max-w-xs space-y-3 p-4 rounded-xl bg-red-950/30 border border-red-900/40">
-                          <AlertCircle className="w-8 h-8 mx-auto text-red-400" />
-                          <div className="text-xs font-semibold text-red-300">Unable to Display PDF</div>
-                          <p className="text-[11px] text-gray-400">{pdfError}</p>
+                      <div className="h-full flex items-center justify-center text-center p-6 text-[var(--text-muted)]">
+                        <div className="max-w-xs space-y-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                          <AlertCircle className="w-8 h-8 mx-auto text-red-500" />
+                          <div className="text-xs font-semibold text-red-500">Unable to Display PDF</div>
+                          <p className="text-[11px] text-[var(--text-muted)]">{pdfError}</p>
                           <button
                             onClick={() => {
                               if (selectedMaterialForSplit) {
@@ -1046,7 +1046,7 @@ function CourseWorkspaceContent() {
                                 });
                               }
                             }}
-                            className="px-3 py-1 bg-red-900/40 hover:bg-red-800/60 border border-red-700/50 text-red-200 text-[11px] rounded transition-colors"
+                            className="px-3 py-1 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-600 dark:text-red-400 text-[11px] rounded transition-colors cursor-pointer"
                           >
                             Retry Loading
                           </button>
@@ -1059,7 +1059,7 @@ function CourseWorkspaceContent() {
                         title={selectedMaterialForSplit.title}
                       />
                     ) : (
-                      <div className="h-full flex items-center justify-center text-center p-6 text-gray-500 text-xs">
+                      <div className="h-full flex items-center justify-center text-center p-6 text-[var(--text-muted)] text-xs">
                         <div>
                           <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p>Preparing PDF document...</p>
@@ -1067,7 +1067,7 @@ function CourseWorkspaceContent() {
                       </div>
                     )
                   ) : (
-                    <div className="h-full flex items-center justify-center text-center p-6 text-gray-500 text-xs">
+                    <div className="h-full flex items-center justify-center text-center p-6 text-[var(--text-muted)] text-xs">
                       <div>
                         <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         <p>Select a material from the dropdown above to view the PDF alongside the tutor.</p>
@@ -1078,17 +1078,17 @@ function CourseWorkspaceContent() {
               </div>
 
               {/* RIGHT: AI Tutor Chat */}
-              <div className="bg-[#0b101f] border border-[#1b263e] rounded-xl flex flex-col overflow-hidden">
-                <div className="p-3 bg-[#0d1425] border-b border-[#1b263e] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 font-semibold text-white">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
+              <div className="app-card rounded-xl flex flex-col overflow-hidden">
+                <div className="p-3 bg-[var(--bg-subtle)] border-b border-[var(--border-color)] flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 font-semibold text-[var(--text-main)]">
+                    <Sparkles className="w-4 h-4 text-[var(--primary)]" />
                     <span>AI Tutor (RAG Pipeline)</span>
                   </div>
-                  <span className="text-[10px] text-gray-400">Context: Extracted Chunks</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">Context: Extracted Chunks</span>
                 </div>
 
                 {/* Messages scroll */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+                <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs bg-[var(--bg-card)]">
                   {messages.map((msg, i) => (
                     <div
                       key={i}
@@ -1097,26 +1097,26 @@ function CourseWorkspaceContent() {
                       <div
                         className={`max-w-[85%] p-3.5 rounded-xl leading-relaxed ${
                           msg.role === 'user'
-                            ? 'bg-indigo-600 text-white rounded-br-none'
-                            : 'bg-[#121a2d] text-gray-200 border border-[#1e2a44] rounded-bl-none'
+                            ? 'bg-[var(--primary)] text-white rounded-br-none shadow-xs'
+                            : 'bg-[var(--bg-subtle)] text-[var(--text-main)] border border-[var(--border-color)] rounded-bl-none shadow-xs'
                         }`}
                       >
                         <div className="whitespace-pre-wrap">{msg.content}</div>
 
                         {/* Source Citations */}
                         {msg.citations && msg.citations.length > 0 && (
-                          <div className="mt-3 pt-2.5 border-t border-[#1e2a44] space-y-1.5">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                          <div className="mt-3 pt-2.5 border-t border-[var(--border-color)] space-y-1.5">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
                               Verified Citations & Page References:
                             </div>
                             {msg.citations.map((c, cIdx) => (
                               <div
                                 key={cIdx}
-                                className="p-2 rounded bg-[#0b1120] border border-indigo-900/30 text-[11px] text-gray-300"
+                                className="p-2 rounded bg-[var(--bg-card)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)]"
                               >
-                                <span className="font-semibold text-white">{c.documentTitle}</span>
-                                <span className="text-indigo-400 ml-1.5">Page {c.pageNumber}</span>
-                                <p className="text-gray-400 mt-0.5 italic">{c.snippet}</p>
+                                <span className="font-semibold text-[var(--text-main)]">{c.documentTitle}</span>
+                                <span className="text-[var(--primary)] font-bold ml-1.5">Page {c.pageNumber}</span>
+                                <p className="text-[var(--text-muted)] mt-0.5 italic">{c.snippet}</p>
                               </div>
                             ))}
                           </div>
@@ -1126,8 +1126,8 @@ function CourseWorkspaceContent() {
                   ))}
 
                   {tutorLoading && (
-                    <div className="flex items-center gap-2 text-gray-400 text-xs">
-                      <div className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs">
+                      <div className="w-3.5 h-3.5 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
                       <span>Retrieving course chunks and generating answer...</span>
                     </div>
                   )}
@@ -1139,10 +1139,10 @@ function CourseWorkspaceContent() {
                     e.preventDefault();
                     handleAskTutor();
                   }}
-                  className="p-3 bg-[#0d1425] border-t border-[#1b263e] flex items-center gap-2"
+                  className="p-3 bg-[var(--bg-subtle)] border-t border-[var(--border-color)] flex items-center gap-2"
                 >
                   <input
-                    className="flex-1 px-3 py-2 bg-[#080d1a] border border-[#1e2a44] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                    className="flex-1 app-input text-xs"
                     placeholder="Ask a question about this course or document..."
                     value={questionInput}
                     onChange={(e) => setQuestionInput(e.target.value)}
@@ -1151,7 +1151,7 @@ function CourseWorkspaceContent() {
                   <button
                     type="submit"
                     disabled={tutorLoading || !questionInput.trim()}
-                    className="p-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-all"
+                    className="p-2 btn-primary rounded-lg transition-all cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
                   </button>
@@ -1164,19 +1164,19 @@ function CourseWorkspaceContent() {
         {/* TAB 4: SUMMARIES */}
         {activeTab === 'summaries' && (
           <div className="space-y-6">
-            <div className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-indigo-400" />
+            <div className="p-5 rounded-xl app-card space-y-4">
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[var(--primary)]" />
                 <span>AI Material Summary Generator</span>
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
                     Select Material
                   </label>
                   <select
-                    className="w-full px-3 py-2 bg-[#090e1c] border border-[#1e2a44] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full app-input text-xs"
                     value={summaryMaterialId}
                     onChange={(e) => setSummaryMaterialId(e.target.value)}
                   >
@@ -1190,11 +1190,11 @@ function CourseWorkspaceContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
                     Summary Format
                   </label>
                   <select
-                    className="w-full px-3 py-2 bg-[#090e1c] border border-[#1e2a44] rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full app-input text-xs"
                     value={summaryType}
                     onChange={(e) => setSummaryType(e.target.value as any)}
                   >
@@ -1209,7 +1209,7 @@ function CourseWorkspaceContent() {
                   <button
                     onClick={handleGenerateSummary}
                     disabled={summaryLoading || !summaryMaterialId}
-                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="btn-primary w-full text-xs cursor-pointer disabled:opacity-50"
                   >
                     {summaryLoading ? (
                       <>
@@ -1229,8 +1229,8 @@ function CourseWorkspaceContent() {
 
             {/* Error Message */}
             {summaryError && (
-              <div className="p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-xs flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-400 mt-0.5" />
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
                 <div>
                   <p className="font-bold text-sm">Summary Generation Failed</p>
                   <p className="mt-1 leading-relaxed">{summaryError}</p>
@@ -1240,50 +1240,50 @@ function CourseWorkspaceContent() {
 
             {/* Summary View Container */}
             {summaryResult ? (
-              <div className="p-6 md:p-8 rounded-xl bg-[#0d1425] border border-indigo-900/30 shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#1b263e] gap-3">
+              <div className="p-6 md:p-8 rounded-xl app-card space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--border-color)] gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-950/60 text-indigo-400 border border-indigo-800">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                         {summaryResult.type.replace('-', ' ')}
                       </span>
                       {summaryResult.sourcePages && summaryResult.sourcePages.length > 0 && (
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
                           <FileText className="w-3.5 h-3.5" />
                           <span>{summaryResult.sourcePages.length} Pages Verified</span>
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold text-white mt-1">{summaryResult.title}</h3>
+                    <h3 className="text-lg font-bold text-[var(--text-main)] mt-1">{summaryResult.title}</h3>
                   </div>
 
                   {summaryResult.sourcePages && (
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-semibold text-gray-400">Pages:</span>
+                      <span className="text-xs font-semibold text-[var(--text-muted)]">Pages:</span>
                       {summaryResult.sourcePages.slice(0, 8).map((p) => (
                         <span
                           key={p}
-                          className="px-2 py-0.5 rounded bg-gray-800 text-gray-300 text-xs font-medium"
+                          className="px-2 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)] text-xs font-medium"
                         >
                           P.{p}
                         </span>
                       ))}
                       {summaryResult.sourcePages.length > 8 && (
-                        <span className="text-xs text-gray-500">+{summaryResult.sourcePages.length - 8} more</span>
+                        <span className="text-xs text-[var(--text-muted)]">+{summaryResult.sourcePages.length - 8} more</span>
                       )}
                     </div>
                   )}
                 </div>
 
                 {/* Rendered Markdown Body */}
-                <div className="pt-2">
+                <div className="pt-2 text-[var(--text-main)]">
                   <MarkdownRenderer content={summaryResult.text} />
                 </div>
               </div>
             ) : (
               !summaryError && (
-                <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-2">
-                  <Layers className="w-8 h-8 text-gray-500 mx-auto" />
+                <div className="p-12 text-center app-card text-xs text-[var(--text-muted)] space-y-2">
+                  <Layers className="w-8 h-8 mx-auto opacity-50" />
                   <p>Select a material above to create concise or comprehensive revision summaries.</p>
                 </div>
               )
@@ -1296,11 +1296,11 @@ function CourseWorkspaceContent() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-emerald-500" />
                   <span>Course Practice Quizzes</span>
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   Every uploaded lecture material generates an AI-grounded quiz scored on the server.
                 </p>
               </div>
@@ -1309,7 +1309,7 @@ function CourseWorkspaceContent() {
                 <button
                   onClick={loadQuizzes}
                   disabled={quizLoading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#162139] hover:bg-[#1e2d4e] border border-[#243456] text-gray-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-main)] rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   title="Refresh Quizzes"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${quizLoading ? 'animate-spin' : ''}`} />
@@ -1319,7 +1319,7 @@ function CourseWorkspaceContent() {
                 <button
                   onClick={handleGenerateAIQuiz}
                   disabled={aiQuizLoading}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all"
+                  className="btn-primary text-xs cursor-pointer disabled:opacity-50"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>{aiQuizLoading ? 'Synthesizing Quizzes...' : 'Generate with AI'}</span>
@@ -1328,7 +1328,7 @@ function CourseWorkspaceContent() {
                 {isProfessor && (
                   <button
                     onClick={() => setShowCreateQuiz(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#162139] hover:bg-[#1e2d4e] border border-[#243456] text-white rounded-lg text-xs font-medium transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Create Quiz</span>
@@ -1338,13 +1338,13 @@ function CourseWorkspaceContent() {
             </div>
 
             {courseQuizzes.length === 0 ? (
-              <div className="p-12 text-center bg-[#0c1322] border border-[#1a253c] rounded-xl text-xs text-gray-400 space-y-3">
-                <CheckCircle className="w-8 h-8 text-gray-500 mx-auto" />
+              <div className="p-12 text-center app-card text-xs text-[var(--text-muted)] space-y-3">
+                <CheckCircle className="w-8 h-8 text-gray-400 mx-auto" />
                 <p>No quizzes currently available for this course.</p>
                 <button
                   onClick={handleGenerateAIQuiz}
                   disabled={aiQuizLoading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-all"
+                  className="btn-primary text-xs mx-auto cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Generate Quizzes from Course Materials</span>
@@ -1355,7 +1355,7 @@ function CourseWorkspaceContent() {
                 {courseQuizzes.map((quiz) => (
                   <div
                     key={quiz.id}
-                    className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] flex flex-col justify-between"
+                    className="p-5 rounded-xl app-card flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -1363,49 +1363,49 @@ function CourseWorkspaceContent() {
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                               quiz.status === 'READY'
-                                ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                                 : quiz.status === 'PROCESSING'
-                                ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40 flex items-center gap-1'
-                                : 'bg-red-950/60 text-red-300 border border-red-800/40'
+                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1'
+                                : 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30'
                             }`}
                           >
                             {quiz.status === 'PROCESSING' && <RefreshCw className="w-2.5 h-2.5 animate-spin" />}
                             {quiz.status}
                           </span>
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                             {quiz.topic}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-400 font-medium">{quiz.questionCount} Questions</span>
+                        <span className="text-xs text-[var(--text-muted)] font-medium">{quiz.questionCount} Questions</span>
                       </div>
 
-                      <div className="text-xs text-indigo-400 flex items-center gap-1.5 mb-1.5 font-medium">
+                      <div className="text-xs text-[var(--primary)] flex items-center gap-1.5 mb-1.5 font-medium">
                         <FileText className="w-3.5 h-3.5 flex-shrink-0" />
                         <span className="truncate">
                           Source PDF: {quiz.material?.fileName || quiz.material?.title || 'Course Lecture'}
                         </span>
                       </div>
 
-                      <h3 className="text-sm font-bold text-white mb-2 leading-snug">{quiz.title}</h3>
+                      <h3 className="text-sm font-bold text-[var(--text-main)] mb-2 leading-snug">{quiz.title}</h3>
 
                       {quiz.status === 'FAILED' && (
-                        <div className="p-2.5 rounded bg-red-950/30 border border-red-900/40 text-xs text-red-300 flex items-start gap-2 mb-3">
-                          <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                        <div className="p-2.5 rounded bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400 flex items-start gap-2 mb-3">
+                          <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
                           <span>{quiz.errorMessage || 'Quiz generation failed.'}</span>
                         </div>
                       )}
 
                       {quiz.status === 'PROCESSING' && (
-                        <div className="p-3 rounded bg-amber-950/20 border border-amber-800/30 text-xs text-amber-300 flex items-center gap-2 mb-3">
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400 flex-shrink-0" />
+                        <div className="p-3 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-2 mb-3">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-500 flex-shrink-0" />
                           <span>Synthesizing questions from extracted PDF content...</span>
                         </div>
                       )}
 
                       {quiz.status === 'READY' && quiz.myLatestAttempt && (
-                        <div className="p-2.5 rounded bg-[#10182b] border border-[#1a263d] text-xs flex justify-between items-center mb-3">
-                          <span className="text-gray-400">Latest Score:</span>
-                          <span className="font-bold text-emerald-400">
+                        <div className="p-2.5 rounded bg-[var(--bg-subtle)] border border-[var(--border-color)] text-xs flex justify-between items-center mb-3">
+                          <span className="text-[var(--text-muted)]">Latest Score:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
                             {quiz.myLatestAttempt.score}/{quiz.myLatestAttempt.maxScore} (
                             {Math.round(
                               (quiz.myLatestAttempt.score / quiz.myLatestAttempt.maxScore) * 100
@@ -1419,7 +1419,7 @@ function CourseWorkspaceContent() {
                     {quiz.status === 'READY' && (
                       <Link
                         href={`/dashboard/quizzes/${quiz.id}`}
-                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-center rounded-lg text-xs font-semibold transition-colors block mt-2"
+                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-center rounded-lg text-xs font-semibold transition-colors block mt-2 cursor-pointer"
                       >
                         {quiz.myLatestAttempt ? 'Retake Quiz →' : 'Take Quiz →'}
                       </Link>
@@ -1429,7 +1429,7 @@ function CourseWorkspaceContent() {
                       <button
                         onClick={() => handleRetryQuiz(quiz.id)}
                         disabled={retryingQuizId === quiz.id}
-                        className="w-full py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-center rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2 mt-2"
+                        className="w-full py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-center rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2 mt-2 cursor-pointer"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${retryingQuizId === quiz.id ? 'animate-spin' : ''}`} />
                         <span>{retryingQuizId === quiz.id ? 'Retrying Generation...' : 'Retry Quiz Generation'}</span>
@@ -1444,16 +1444,16 @@ function CourseWorkspaceContent() {
 
         {/* TAB 6: PROGRESS & ANALYTICS (Student View) */}
         {activeTab === 'progress' && (
-          <div className="p-6 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-400" />
+          <div className="p-6 rounded-xl app-card space-y-4">
+            <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
               <span>Course Learning & Topic Mastery</span>
             </h2>
-            <p className="text-xs text-gray-300 leading-relaxed">
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
               Your overall course progress is computed directly from verified server quiz attempts and
               retention metrics. To review your complete multi-course analytics and topic breakdown,
               visit your{' '}
-              <Link href="/dashboard/progress" className="text-indigo-400 underline font-semibold">
+              <Link href="/dashboard/progress" className="text-[var(--primary)] underline font-semibold">
                 Global Progress Dashboard
               </Link>
               .
@@ -1466,22 +1466,22 @@ function CourseWorkspaceContent() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[var(--primary)]" />
                   <span>Enrolled Students & Performance</span>
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   Track individual student progress, quiz attempts, and learning support needs for this course.
                 </p>
               </div>
               <div className="relative max-w-xs w-full">
-                <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Filter roster by student name..."
                   value={rosterSearch}
                   onChange={(e) => setRosterSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-[#080d1a] border border-[#1c2944] rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full pl-9 pr-3 py-1.5 app-input text-xs"
                 />
               </div>
             </div>
@@ -1489,29 +1489,29 @@ function CourseWorkspaceContent() {
             {/* Quick stats banner */}
             {courseAnalytics && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-                  <div className="text-xs text-gray-400">Total Enrolled</div>
-                  <div className="text-xl font-bold text-white mt-0.5">
+                <div className="p-3.5 rounded-xl app-card">
+                  <div className="text-xs text-[var(--text-muted)]">Total Enrolled</div>
+                  <div className="text-xl font-bold text-[var(--text-main)] mt-0.5">
                     {courseAnalytics.stats.enrollmentCount}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-                  <div className="text-xs text-emerald-400">Class Average</div>
-                  <div className="text-xl font-bold text-emerald-400 mt-0.5">
+                <div className="p-3.5 rounded-xl app-card">
+                  <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Class Average</div>
+                  <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                     {courseAnalytics.stats.classAverage !== null
                       ? `${courseAnalytics.stats.classAverage}%`
                       : 'N/A'}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-                  <div className="text-xs text-rose-400">Needs Support (&lt;60%)</div>
-                  <div className="text-xl font-bold text-rose-400 mt-0.5">
+                <div className="p-3.5 rounded-xl app-card">
+                  <div className="text-xs text-rose-600 dark:text-rose-400 font-medium">Needs Support (&lt;60%)</div>
+                  <div className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-0.5">
                     {courseAnalytics.stats.studentsNeedingSupport}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#0d1425] border border-[#1b263e]">
-                  <div className="text-xs text-indigo-400">Quiz Submissions</div>
-                  <div className="text-xl font-bold text-indigo-300 mt-0.5">
+                <div className="p-3.5 rounded-xl app-card">
+                  <div className="text-xs text-[var(--primary)] font-medium">Quiz Submissions</div>
+                  <div className="text-xl font-bold text-[var(--primary)] mt-0.5">
                     {courseAnalytics.stats.totalAttempts}
                   </div>
                 </div>
@@ -1519,21 +1519,21 @@ function CourseWorkspaceContent() {
             )}
 
             {/* Roster Table */}
-            <div className="rounded-xl bg-[#0d1425] border border-[#1b263e] overflow-hidden">
+            <div className="rounded-xl app-card overflow-hidden">
               {courseAnalyticsLoading ? (
-                <div className="p-12 text-center text-gray-400 text-xs">Loading course roster...</div>
+                <div className="p-12 text-center text-[var(--text-muted)] text-xs">Loading course roster...</div>
               ) : !courseAnalytics || courseAnalytics.students.length === 0 ? (
-                <div className="p-12 text-center text-gray-400 text-xs space-y-2">
-                  <Users className="w-8 h-8 text-gray-600 mx-auto" />
+                <div className="p-12 text-center text-[var(--text-muted)] text-xs space-y-2">
+                  <Users className="w-8 h-8 opacity-40 mx-auto" />
                   <p>No students have enrolled in this course yet.</p>
-                  <p className="text-[11px] text-gray-500">
-                    Share course code <span className="font-mono text-indigo-400 font-bold">{course.code}</span> with your students.
+                  <p className="text-[11px] text-[var(--text-subtle)]">
+                    Share course code <span className="font-mono text-[var(--primary)] font-bold">{course.code}</span> with your students.
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#090e1d] text-gray-400 uppercase tracking-wider font-semibold border-b border-[#1b263e]">
+                    <thead className="bg-[var(--bg-subtle)] text-[var(--text-muted)] uppercase tracking-wider font-semibold border-b border-[var(--border-color)]">
                       <tr>
                         <th className="py-3 px-4">Student</th>
                         <th className="py-3 px-4">Enrolled Date</th>
@@ -1543,7 +1543,7 @@ function CourseWorkspaceContent() {
                         <th className="py-3 px-4 text-right">Details</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#162137]">
+                    <tbody className="divide-y divide-[var(--border-subtle)]">
                       {courseAnalytics.students
                         .filter(
                           (s) =>
@@ -1551,46 +1551,46 @@ function CourseWorkspaceContent() {
                             s.email.toLowerCase().includes(rosterSearch.toLowerCase())
                         )
                         .map((st) => (
-                          <>
-                            <tr key={st.id} className="hover:bg-[#10192e] transition-colors">
+                          <React.Fragment key={st.id}>
+                            <tr className="hover:bg-[var(--bg-subtle)] transition-colors">
                               <td className="py-3.5 px-4">
-                                <div className="font-bold text-white text-sm">{st.name}</div>
-                                <div className="text-gray-400 text-[11px] font-mono">{st.email}</div>
+                                <div className="font-bold text-[var(--text-main)] text-sm">{st.name}</div>
+                                <div className="text-[var(--text-muted)] text-[11px] font-mono">{st.email}</div>
                               </td>
-                              <td className="py-3.5 px-4 text-gray-400 text-[11px]">
+                              <td className="py-3.5 px-4 text-[var(--text-muted)] text-[11px]">
                                 {new Date(st.enrolledAt).toLocaleDateString()}
                               </td>
-                              <td className="py-3.5 px-4 text-center font-bold text-gray-200">
+                              <td className="py-3.5 px-4 text-center font-bold text-[var(--text-main)]">
                                 {st.totalAttempts}
                               </td>
                               <td className="py-3.5 px-4 text-center">
                                 {st.averageScore !== null ? (
                                   <span
                                     className={`font-black text-sm ${
-                                      st.averageScore >= 60 ? 'text-emerald-400' : 'text-rose-400'
+                                      st.averageScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                     }`}
                                   >
                                     {st.averageScore}%
                                   </span>
                                 ) : (
-                                  <span className="text-gray-500 italic">No attempts</span>
+                                  <span className="text-[var(--text-subtle)] italic">No attempts</span>
                                 )}
                               </td>
                               <td className="py-3.5 px-4">
                                 {st.status === 'GOOD' && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                     <CheckCircle className="w-3 h-3" />
                                     Good Standing
                                   </span>
                                 )}
                                 {st.status === 'NEEDS_SUPPORT' && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                                     <AlertCircle className="w-3 h-3" />
                                     Needs Attention
                                   </span>
                                 )}
                                 {st.status === 'NO_ATTEMPTS' && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                                     <HelpCircle className="w-3 h-3" />
                                     No Attempts
                                   </span>
@@ -1604,7 +1604,7 @@ function CourseWorkspaceContent() {
                                         expandedStudentId === st.id ? null : st.id
                                       )
                                     }
-                                    className="px-2.5 py-1 rounded bg-[#162137] hover:bg-[#1e2d4d] text-gray-300 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1"
+                                    className="px-2.5 py-1 rounded bg-[var(--bg-subtle)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] text-xs font-semibold border border-[var(--border-color)] transition-all inline-flex items-center gap-1 cursor-pointer"
                                   >
                                     <span>{expandedStudentId === st.id ? 'Hide' : 'History'}</span>
                                     {expandedStudentId === st.id ? (
@@ -1618,26 +1618,26 @@ function CourseWorkspaceContent() {
                             </tr>
                             {/* Expandable attempt history */}
                             {expandedStudentId === st.id && (
-                              <tr className="bg-[#080d1a]">
-                                <td colSpan={6} className="p-4 border-b border-[#1b263e]">
+                              <tr className="bg-[var(--bg-subtle)]">
+                                <td colSpan={6} className="p-4 border-b border-[var(--border-color)]">
                                   <div className="space-y-2 max-w-xl mx-auto">
-                                    <div className="text-xs font-bold text-gray-300 uppercase">
+                                    <div className="text-xs font-bold text-[var(--text-main)] uppercase">
                                       Submission History for {st.name}
                                     </div>
                                     <div className="space-y-1.5">
                                       {st.attempts.map((att) => (
                                         <div
                                           key={att.id}
-                                          className="p-2.5 rounded-lg bg-[#0e1628] border border-[#1c2944] flex items-center justify-between text-xs"
+                                          className="p-2.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-between text-xs"
                                         >
-                                          <span className="text-gray-400 text-[11px]">
+                                          <span className="text-[var(--text-muted)] text-[11px]">
                                             {new Date(att.createdAt).toLocaleString()}
                                           </span>
                                           <span
                                             className={`font-black ${
                                               att.percentage >= 60
-                                                ? 'text-emerald-400'
-                                                : 'text-rose-400'
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-rose-600 dark:text-rose-400'
                                             }`}
                                           >
                                             {att.score} / {att.maxScore} ({att.percentage}%)
@@ -1649,7 +1649,7 @@ function CourseWorkspaceContent() {
                                 </td>
                               </tr>
                             )}
-                          </>
+                          </React.Fragment>
                         ))}
                     </tbody>
                   </table>
@@ -1663,11 +1663,11 @@ function CourseWorkspaceContent() {
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-indigo-400" />
+              <h2 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
                 <span>Quiz Analytics & Question Breakdown</span>
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Examine student accuracy rates on individual questions to pinpoint weak topics and lecture slide references.
               </p>
             </div>
@@ -1675,31 +1675,31 @@ function CourseWorkspaceContent() {
             {/* Question Breakdown */}
             <div className="space-y-3">
               {!courseAnalytics || courseAnalytics.questionAnalytics.length === 0 ? (
-                <div className="p-12 text-center text-gray-400 bg-[#0d1425] border border-[#1b263e] rounded-xl text-xs">
+                <div className="p-12 text-center text-[var(--text-muted)] app-card text-xs">
                   No question responses recorded yet for this course.
                 </div>
               ) : (
                 courseAnalytics.questionAnalytics.map((ques, idx) => (
                   <div
                     key={ques.id || idx}
-                    className="p-5 rounded-xl bg-[#0d1425] border border-[#1b263e] space-y-3 text-xs"
+                    className="p-5 rounded-xl app-card space-y-3 text-xs"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141d33] text-indigo-300">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/30">
                             {ques.quizTitle}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#17223b] text-gray-300">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)]">
                             {ques.topic}
                           </span>
                         </div>
-                        <h3 className="text-sm font-semibold text-white mt-1.5 leading-relaxed">
-                          <span className="text-indigo-400 font-bold mr-1.5">Q{idx + 1}.</span>
+                        <h3 className="text-sm font-semibold text-[var(--text-main)] mt-1.5 leading-relaxed">
+                          <span className="text-[var(--primary)] font-bold mr-1.5">Q{idx + 1}.</span>
                           {ques.questionText}
                         </h3>
                         {ques.pageReference && (
-                          <div className="text-[11px] text-indigo-400 font-medium mt-1">
+                          <div className="text-[11px] text-[var(--primary)] font-medium mt-1">
                             Referenced on Page {ques.pageReference} in course notes
                           </div>
                         )}
@@ -1708,13 +1708,13 @@ function CourseWorkspaceContent() {
                         <span
                           className={`px-2.5 py-1 rounded text-xs font-bold border ${
                             ques.successRate >= 60
-                              ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/40'
-                              : 'bg-rose-950/60 text-rose-400 border-rose-800/40'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
                           }`}
                         >
                           {ques.successRate}% Success
                         </span>
-                        <div className="text-[11px] text-gray-400 mt-1">
+                        <div className="text-[11px] text-[var(--text-muted)] mt-1">
                           {ques.correctResponses} / {ques.totalResponses} correct ({ques.incorrectResponses} incorrect)
                         </div>
                       </div>
@@ -2088,7 +2088,7 @@ export default function CourseWorkspacePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#070b14] flex items-center justify-center text-gray-400">
+        <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-muted)]">
           Loading...
         </div>
       }

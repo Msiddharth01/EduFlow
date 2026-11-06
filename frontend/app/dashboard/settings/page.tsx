@@ -47,11 +47,11 @@ export default function SettingsPage() {
               }}
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#0B1020] border border-[#263247] flex items-center justify-center text-amber-400 shadow-inner">
-                  <Moon className="w-5 h-5 text-indigo-400" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-color)] flex items-center justify-center text-amber-400 shadow-inner">
+                  <Moon className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 {theme === 'dark' && (
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-800/40">
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] bg-[var(--primary-light)] px-2 py-0.5 rounded-full border border-[var(--primary)]/20">
                     <Check className="w-3 h-3" /> Active
                   </span>
                 )}

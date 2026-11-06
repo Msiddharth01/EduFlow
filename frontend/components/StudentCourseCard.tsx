@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { CourseWithMeta } from '@/lib/api';
 import CoursePatternBanner from './CoursePatternBanner';
 import {
-  Users,
   FileText,
   CheckSquare,
   ArrowRight,
+  User,
 } from 'lucide-react';
 
 interface StudentCourseCardProps {
@@ -23,20 +23,21 @@ export default function StudentCourseCard({ course }: StudentCourseCardProps) {
     <Link
       href={`/dashboard/courses/${course.id}`}
       style={{ textDecoration: 'none' }}
-      className="app-card rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-indigo-500/60 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 block cursor-pointer"
+      className="app-card rounded-xl overflow-hidden flex flex-col justify-between group transition-all duration-150 block cursor-pointer hover:shadow-md"
     >
-      {/* 1. TOP DECORATIVE GEOMETRIC BANNER (110–140px) */}
+      {/* 1. TOP GEOMETRIC ARTWORK BANNER */}
       <div className="relative h-28 sm:h-32 w-full overflow-hidden">
         <CoursePatternBanner
           courseId={course.id}
           courseCode={course.code}
+          title={course.title}
         />
 
         {/* Floating Badges overlaying banner */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
           {/* Course Code Pill */}
           <span
-            className="px-2.5 py-1 rounded-lg text-xs font-black tracking-wider uppercase backdrop-blur-md shadow-xs border transition-colors"
+            className="px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase backdrop-blur-md shadow-xs border transition-colors"
             style={{
               backgroundColor: 'rgba(15, 23, 42, 0.72)',
               color: '#FFFFFF',
@@ -53,12 +54,12 @@ export default function StudentCourseCard({ course }: StudentCourseCardProps) {
             style={{
               backgroundColor:
                 course.myRoleInCourse === 'PROFESSOR'
-                  ? 'rgba(88, 28, 135, 0.75)'
+                  ? 'rgba(53, 106, 230, 0.75)'
                   : 'rgba(6, 78, 59, 0.75)',
               color: '#FFFFFF',
               borderColor:
                 course.myRoleInCourse === 'PROFESSOR'
-                  ? 'rgba(192, 132, 252, 0.4)'
+                  ? 'rgba(53, 106, 230, 0.4)'
                   : 'rgba(52, 211, 153, 0.4)',
               textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
             }}
@@ -69,27 +70,26 @@ export default function StudentCourseCard({ course }: StudentCourseCardProps) {
       </div>
 
       {/* 2. CARD CONTENT BODY */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-3.5">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
           {/* Course Title */}
           <h3
-            style={{ color: 'var(--text-main)', fontSize: '1.05rem', fontWeight: 700 }}
-            className="group-hover:text-indigo-400 transition-colors mb-1.5 leading-snug"
+            style={{ color: 'var(--text-main)' }}
+            className="text-[0.975rem] font-semibold leading-snug tracking-tight group-hover:text-[var(--primary)] transition-colors mb-1.5"
           >
             {course.title}
           </h3>
 
-          {/* Instructor name */}
-          <div className="flex items-center gap-1.5 text-xs mb-2.5" style={{ color: 'var(--text-muted)' }}>
-            <Users className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
-            <span className="truncate">{course.professor || 'Prof. Faculty'}</span>
+          {/* Instructor line */}
+          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] mb-2.5">
+            <User className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+            <span className="truncate">{course.professor || 'Faculty Instructor'}</span>
           </div>
 
           {/* Course Description */}
           {course.description && (
             <p
-              style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.5 }}
-              className="line-clamp-2 mb-3"
+              className="text-xs leading-relaxed text-[var(--text-muted)] line-clamp-2"
             >
               {course.description}
             </p>
@@ -97,43 +97,48 @@ export default function StudentCourseCard({ course }: StudentCourseCardProps) {
         </div>
 
         {/* 3. CARD FOOTER: PROGRESS & STATS */}
-        <div className="space-y-3 pt-1">
-          {/* Progress bar using real backend data */}
+        <div className="space-y-3 pt-2">
+          {/* Hairline Progress Indicator */}
           <div className="space-y-1.5">
-            <div className="flex justify-between text-[11px]">
-              <span style={{ color: 'var(--text-subtle)' }}>Progress</span>
-              <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{progressPct}% complete</span>
+            <div className="flex justify-between items-baseline text-[11px]">
+              <span className="text-[var(--text-subtle)] font-medium">Syllabus Completion</span>
+              <span className="font-mono text-[var(--text-main)] font-semibold">{progressPct}%</span>
             </div>
             <div
-              className="w-full h-1.5 rounded-full overflow-hidden"
-              style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}
+              className="w-full h-1 rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-subtle)' }}
             >
               <div
-                style={{ width: `${progressPct}%` }}
-                className="bg-indigo-500 h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${progressPct}%`,
+                  backgroundColor: 'var(--primary)',
+                }}
+                className="h-full rounded-full transition-all duration-300"
               />
             </div>
           </div>
 
-          {/* Counts & Open Course Action */}
+          {/* Metadata counts & view indicator */}
           <div
-            style={{ borderTop: '1px solid var(--border-color)', color: 'var(--text-subtle)' }}
-            className="flex items-center justify-between pt-3 text-xs"
+            style={{ borderTop: '1px solid var(--border-subtle)' }}
+            className="flex items-center justify-between pt-3 text-xs text-[var(--text-muted)]"
           >
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5" title="Course Materials">
-                <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{materialsCount} {materialsCount === 1 ? 'Material' : 'Materials'}</span>
-              </div>
-              <div className="flex items-center gap-1.5" title="Practice Quizzes">
-                <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{quizzesCount} {quizzesCount === 1 ? 'Quiz' : 'Quizzes'}</span>
-              </div>
+              <span className="inline-flex items-center gap-1.5" title="Course Materials">
+                <FileText className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                <span className="font-mono text-[11px]">{materialsCount}</span>
+                <span className="text-[11px]">{materialsCount === 1 ? 'doc' : 'docs'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5" title="Practice Quizzes">
+                <CheckSquare className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                <span className="font-mono text-[11px]">{quizzesCount}</span>
+                <span className="text-[11px]">{quizzesCount === 1 ? 'quiz' : 'quizzes'}</span>
+              </span>
             </div>
 
-            <div className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition-all">
-              <span>Open Course</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--primary)] group-hover:translate-x-0.5 transition-transform">
+              <span>Enter</span>
+              <ArrowRight className="w-3 h-3" />
             </div>
           </div>
         </div>

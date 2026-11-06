@@ -20,11 +20,8 @@ import {
   Target,
   ArrowRight,
   Plus,
-  Play,
-  FileText,
   Clock,
   Sparkles,
-  Users,
   AlertCircle,
   CheckCircle,
   ClipboardList,
@@ -135,47 +132,43 @@ export default function DashboardPage() {
           justifyContent: 'center',
         }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <span>Loading EduFlow workspace...</span>
+        <div className="flex items-center gap-3 text-xs font-mono">
+          <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <span>Synchronizing EduFlow workspace...</span>
         </div>
       </div>
     );
   }
 
   const isProfessor = user.role === 'PROFESSOR';
+  const pendingAssignments = timeline.filter((t) => t.status !== 'Submitted');
 
   return (
     <AppLayout>
       <div
         style={{
-          maxWidth: '1440px',
+          maxWidth: '1360px',
           margin: '0 auto',
-          padding: '2rem 2.25rem 3.5rem 2.25rem',
+          padding: '2rem 1.5rem 3.5rem 1.5rem',
         }}
-        className="space-y-8 w-full"
+        className="space-y-7 w-full sm:px-8"
       >
-        {/* ================= GREETING HEADER ================= */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-          <div>
-            <h1
-              style={{
-                color: 'var(--text-main)',
-                fontSize: '1.875rem',
-                fontWeight: 800,
-                letterSpacing: '-0.025em',
-              }}
-            >
-              Welcome back, {user.name}!
+        {/* ================= GREETING & WORKSPACE HEADER ================= */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1 border-b border-[var(--border-subtle)]">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="editorial-kicker">Student Workspace</span>
+              <span className="text-[var(--text-subtle)] text-xs">•</span>
+              <span className="text-[11px] font-mono text-[var(--text-subtle)] uppercase">
+                Academic Year 2026–27
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text-main)]">
+              Welcome back, {user.name}
             </h1>
-            <p
-              style={{
-                color: 'var(--text-muted)',
-                fontSize: '0.875rem',
-                marginTop: '0.35rem',
-              }}
-            >
-              Continue your learning journey.
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
+              You are enrolled in <span className="font-semibold text-[var(--text-main)]">{courses.length}</span> {courses.length === 1 ? 'course' : 'courses'} with{' '}
+              <span className="font-semibold text-[var(--text-main)]">{pendingAssignments.length}</span> pending {pendingAssignments.length === 1 ? 'deadline' : 'deadlines'}.
             </p>
           </div>
 
@@ -185,15 +178,15 @@ export default function DashboardPage() {
                 onClick={() => setShowCreateModal(true)}
                 className="btn-primary"
               >
-                <Plus className="w-4 h-4" />
-                <span>+ Create Course</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Course</span>
               </button>
             ) : (
               <button
                 onClick={() => setShowEnrollModal(true)}
                 className="btn-primary"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
                 <span>Enroll in Course</span>
               </button>
             )}
@@ -204,18 +197,18 @@ export default function DashboardPage() {
         {actionMsg && (
           <div
             style={{
-              padding: '0.75rem 1.25rem',
-              borderRadius: '0.625rem',
-              fontSize: '0.85rem',
-              backgroundColor: actionMsg.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: actionMsg.type === 'success' ? '#10B981' : '#EF4444',
-              border: actionMsg.type === 'success' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+              padding: '0.75rem 1rem',
+              borderRadius: 'var(--radius)',
+              fontSize: '0.8125rem',
+              backgroundColor: actionMsg.type === 'success' ? 'var(--bg-card)' : 'var(--bg-card)',
+              color: actionMsg.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)',
+              border: `1px solid ${actionMsg.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <span>{actionMsg.text}</span>
+            <span className="font-medium">{actionMsg.text}</span>
             <button
               onClick={() => setActionMsg(null)}
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }}
@@ -225,168 +218,68 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ================= 4 METRIC STATS CARDS ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        {/* ================= EDITORIAL METRICS STRIP ================= */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
           {/* 1. Enrolled Courses */}
-          <div className="app-card p-5 flex items-center gap-4">
-            <div
-              style={{
-                backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                color: '#818CF8',
-                width: '3.25rem',
-                height: '3.25rem',
-                borderRadius: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <BookOpen className="w-6 h-6" />
+          <div className="app-card p-4 sm:p-5 flex flex-col justify-between space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="editorial-kicker">Enrolled</span>
+              <BookOpen className="w-4 h-4 text-[var(--text-subtle)]" />
             </div>
             <div>
-              <div
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.875rem',
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                }}
-              >
+              <div className="editorial-metric text-[var(--text-main)]">
                 {courses.length}
               </div>
-              <div
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  marginTop: '0.2rem',
-                }}
-              >
-                Enrolled Courses
+              <div className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                Active syllabi
               </div>
             </div>
           </div>
 
           {/* 2. Quizzes Attempted */}
-          <div className="app-card p-5 flex items-center gap-4">
-            <div
-              style={{
-                backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                color: '#FBBF24',
-                width: '3.25rem',
-                height: '3.25rem',
-                borderRadius: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <CheckSquare className="w-6 h-6" />
+          <div className="app-card p-4 sm:p-5 flex flex-col justify-between space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="editorial-kicker">Evaluations</span>
+              <CheckSquare className="w-4 h-4 text-[var(--text-subtle)]" />
             </div>
             <div>
-              <div
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.875rem',
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                }}
-              >
+              <div className="editorial-metric text-[var(--text-main)]">
                 {analytics?.quizzesAttempted ?? 0}
               </div>
-              <div
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  marginTop: '0.2rem',
-                }}
-              >
-                Quizzes Attempted
+              <div className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                Quizzes completed
               </div>
             </div>
           </div>
 
           {/* 3. Average Score */}
-          <div className="app-card p-5 flex items-center gap-4">
-            <div
-              style={{
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                color: '#34D399',
-                width: '3.25rem',
-                height: '3.25rem',
-                borderRadius: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <TrendingUp className="w-6 h-6" />
+          <div className="app-card p-4 sm:p-5 flex flex-col justify-between space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="editorial-kicker">Mean Mastery</span>
+              <TrendingUp className="w-4 h-4 text-[var(--text-subtle)]" />
             </div>
             <div>
-              <div
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.875rem',
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                }}
-              >
-                {analytics && analytics.quizzesAttempted > 0 ? `${analytics.averageScore}%` : 'N/A'}
+              <div className="editorial-metric text-[var(--text-main)]">
+                {analytics && analytics.quizzesAttempted > 0 ? `${analytics.averageScore}%` : '—'}
               </div>
-              <div
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  marginTop: '0.2rem',
-                }}
-              >
-                Average Score
+              <div className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                Cumulative score
               </div>
             </div>
           </div>
 
           {/* 4. Topics to Revise */}
-          <div className="app-card p-5 flex items-center gap-4">
-            <div
-              style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                color: '#F87171',
-                width: '3.25rem',
-                height: '3.25rem',
-                borderRadius: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Target className="w-6 h-6" />
+          <div className="app-card p-4 sm:p-5 flex flex-col justify-between space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="editorial-kicker">Review Topics</span>
+              <Target className="w-4 h-4 text-[var(--text-subtle)]" />
             </div>
             <div>
-              <div
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.875rem',
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                }}
-              >
+              <div className="editorial-metric text-[var(--text-main)]">
                 {analytics?.weakTopics?.length ?? 0}
               </div>
-              <div
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  marginTop: '0.2rem',
-                }}
-              >
-                Topics to Revise
+              <div className="text-[11px] text-[var(--text-subtle)] mt-0.5">
+                Needs reinforcement
               </div>
             </div>
           </div>
@@ -394,76 +287,59 @@ export default function DashboardPage() {
 
         {/* ================= MAIN DASHBOARD 2-COLUMN STRUCTURE (62% Left, 38% Right) ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start w-full">
-          {/* ================= LEFT COLUMN: MY COURSES (7.5 of 12 columns ~ 63%) ================= */}
+          {/* ================= LEFT COLUMN: MY COURSES (7 of 12 columns) ================= */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                }}
-                className="flex items-center gap-2"
-              >
-                <BookOpen className="w-5 h-5 text-indigo-400" />
-                <span>My Courses</span>
-              </h2>
+            <div className="flex items-center justify-between pb-1">
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base font-semibold tracking-tight text-[var(--text-main)]">
+                  Enrolled Courses
+                </h2>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-subtle)] bg-[var(--bg-subtle)]">
+                  {courses.length}
+                </span>
+              </div>
               <Link
                 href="/dashboard/courses"
-                style={{ color: '#818CF8', textDecoration: 'none' }}
-                className="text-xs font-semibold hover:underline"
+                className="text-xs font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
               >
-                View all →
+                <span>View catalog</span>
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[1, 2].map((i) => (
-                  <div key={i} className="app-card h-32 animate-pulse" />
+                  <div key={i} className="app-card h-48 animate-pulse" />
                 ))}
               </div>
             ) : courses.length === 0 ? (
-              /* Compact, properly vertically-aligned zero-course card */
-              <div className="app-card p-8 text-center space-y-3.5">
+              /* Editorial zero-course card */
+              <div className="app-card p-8 sm:p-10 text-center space-y-4 border-dashed">
                 <div
+                  className="w-10 h-10 rounded-md mx-auto flex items-center justify-center font-mono font-bold text-sm"
                   style={{
-                    backgroundColor: 'rgba(99, 102, 241, 0.12)',
-                    color: '#818CF8',
-                    width: '3.5rem',
-                    height: '3.5rem',
-                    borderRadius: '9999px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto',
+                    backgroundColor: 'var(--bg-subtle)',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border-color)',
                   }}
                 >
-                  <BookOpen className="w-6 h-6" />
+                  <BookOpen className="w-5 h-5 opacity-70" />
                 </div>
-                <div className="max-w-md mx-auto">
-                  <h3
-                    style={{ color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 700 }}
-                  >
-                    You haven’t enrolled in any courses yet.
+                <div className="max-w-md mx-auto space-y-1.5">
+                  <h3 className="text-sm font-semibold text-[var(--text-main)]">
+                    No active course enrollments
                   </h3>
-                  <p
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                      marginTop: '0.35rem',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Enter the course code provided by your professor to access lecture PDFs, AI tutoring, summaries, and quizzes.
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Enter the academic course code provided by your instructor to access lecture notes, grounded AI tutoring, summaries, and quizzes.
                   </p>
                 </div>
-                <div className="pt-1">
+                <div className="pt-2">
                   <button
                     onClick={() => setShowEnrollModal(true)}
                     className="btn-primary"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5" />
                     <span>Enroll in Course</span>
                   </button>
                 </div>
@@ -478,21 +354,21 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* ================= RIGHT COLUMN: RECOMMENDATIONS & RECENT ACTIVITY (4.5 of 12 columns ~ 37%) ================= */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-            {/* 1. Personalized Recommendations Card */}
-            <div className="app-card p-6 space-y-4">
-              <h2
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.05rem',
-                  fontWeight: 700,
-                }}
-                className="flex items-center gap-2"
-              >
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Personalized Recommendations</span>
-              </h2>
+          {/* ================= RIGHT COLUMN: ADVISORY, DEADLINES & RECENT ACTIVITY (5 of 12 columns) ================= */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-5">
+            {/* 1. Academic Study Advisory (Recommendations) */}
+            <div className="app-card p-5 space-y-3.5">
+              <div className="flex items-center justify-between pb-1 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)] font-mono">
+                    Study Advisory
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono text-[var(--text-subtle)]">
+                  Evaluation Feedback
+                </span>
+              </div>
 
               {analytics && analytics.recommendations.length > 0 ? (
                 <div className="space-y-3">
@@ -501,32 +377,33 @@ export default function DashboardPage() {
                       key={i}
                       style={{
                         backgroundColor: 'var(--bg-subtle)',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        border: '1px solid var(--border-subtle)',
                       }}
-                      className="p-4 rounded-xl text-xs space-y-2.5"
+                      className="p-3.5 rounded-md text-xs space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-amber-400 flex items-center gap-1.5">
-                          <Target className="w-3.5 h-3.5" />
-                          <span>Revise: {rec.topic}</span>
+                        <span className="font-semibold text-[var(--text-main)] flex items-center gap-1.5">
+                          <Target className="w-3.5 h-3.5 text-[var(--color-warning)]" />
+                          <span>{rec.topic}</span>
                         </span>
-                        <span style={{ color: 'var(--text-subtle)', fontSize: '0.7rem' }}>{rec.courseCode}</span>
+                        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-subtle)]">
+                          {rec.courseCode}
+                        </span>
                       </div>
-                      <p style={{ color: 'var(--text-main)', lineHeight: 1.55 }}>
+                      <p className="text-[var(--text-muted)] text-[12px] leading-relaxed">
                         {rec.advice}
                       </p>
-                      <div className="pt-1 flex items-center justify-between">
+                      <div className="pt-1 flex items-center justify-between border-t border-[var(--border-subtle)]">
                         <Link
                           href="/dashboard/tutor"
-                          style={{ color: '#818CF8', textDecoration: 'none' }}
-                          className="inline-flex items-center gap-1 font-semibold hover:underline"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--primary)] hover:underline"
                         >
-                          <span>Review with AI Tutor</span>
+                          <span>Review with Tutor</span>
                           <ArrowRight className="w-3 h-3" />
                         </Link>
                         <Link
                           href="/dashboard/quizzes"
-                          className="px-2.5 py-1 rounded bg-[#080D19] border border-[#263247] text-gray-300 hover:text-white font-medium text-[11px]"
+                          className="text-[11px] font-medium px-2 py-0.5 rounded border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)]"
                         >
                           Practice Quiz
                         </Link>
@@ -535,150 +412,127 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div
-                  style={{
-                    backgroundColor: 'var(--bg-subtle)',
-                    color: 'var(--text-muted)',
-                  }}
-                  className="p-5 rounded-xl text-center text-xs space-y-3"
-                >
-                  <p className="leading-relaxed">
-                    Personalized revision recommendations will appear here after you attempt your course quizzes.
+                <div className="p-4 rounded-md text-center text-xs space-y-2 bg-[var(--bg-subtle)]">
+                  <p className="text-[var(--text-muted)] leading-relaxed text-[12px]">
+                    No immediate revision flags. Recommendations automatically update as you complete evaluations.
                   </p>
                   <Link
                     href="/dashboard/quizzes"
-                    className="btn-secondary text-xs inline-flex"
+                    className="btn-secondary text-[11px] inline-flex py-1 px-3"
                   >
-                    <span>Practice a Quiz</span>
+                    Take a Practice Quiz
                   </Link>
                 </div>
               )}
             </div>
 
-            {/* Upcoming Deadlines & Assignments Card */}
-            <div className="app-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2
-                  style={{
-                    color: 'var(--text-main)',
-                    fontSize: '1.05rem',
-                    fontWeight: 700,
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <ClipboardList className="w-4 h-4 text-indigo-400" />
-                  <span>Upcoming Assignments</span>
-                </h2>
+            {/* 2. Upcoming Academic Deadlines */}
+            <div className="app-card p-5 space-y-3.5">
+              <div className="flex items-center justify-between pb-1 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)] font-mono">
+                    Upcoming Deadlines
+                  </h2>
+                </div>
                 <Link
                   href="/dashboard/timeline"
-                  style={{ color: '#818CF8', textDecoration: 'none' }}
-                  className="text-xs font-semibold hover:underline"
+                  className="text-[11px] font-mono text-[var(--primary)] hover:underline"
                 >
-                  View timeline →
+                  Timeline →
                 </Link>
               </div>
 
-              {timeline.filter((t) => t.status !== 'Submitted').length > 0 ? (
-                <div className="space-y-3">
-                  {timeline
-                    .filter((t) => t.status !== 'Submitted')
-                    .slice(0, 4)
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          backgroundColor: 'var(--bg-subtle)',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        className="p-3.5 rounded-xl text-xs space-y-2 hover:border-indigo-400/40 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/10 text-[11px]">
-                            {item.courseCode}
-                          </span>
-                          <span
-                            className={`text-[11px] font-semibold ${
-                              item.status === 'Overdue' ? 'text-red-400' : 'text-slate-400'
-                            }`}
-                          >
-                            {item.countdown}
-                          </span>
-                        </div>
-
-                        <h3 style={{ color: 'var(--text-main)' }} className="font-bold truncate">
-                          {item.title}
-                        </h3>
-
-                        <div className="flex items-center justify-between pt-1">
-                          <span style={{ color: 'var(--text-subtle)' }} className="text-[11px]">
-                            Due: {item.deadlineFormatted}
-                          </span>
-                          <Link
-                            href={`/dashboard/courses/${item.courseId}?tab=assignments`}
-                            className="inline-flex items-center gap-1 font-semibold text-indigo-400 hover:text-indigo-300"
-                          >
-                            <span>Submit</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </Link>
-                        </div>
+              {pendingAssignments.length > 0 ? (
+                <div className="space-y-2.5">
+                  {pendingAssignments.slice(0, 4).map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        backgroundColor: 'var(--bg-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                      className="p-3 rounded-md text-xs space-y-1.5 hover:border-[var(--border-strong)] transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-main)]">
+                          {item.courseCode}
+                        </span>
+                        <span
+                          className={`font-mono text-[10px] font-medium ${
+                            item.status === 'Overdue' ? 'text-[var(--color-danger)]' : 'text-[var(--text-subtle)]'
+                          }`}
+                        >
+                          {item.countdown}
+                        </span>
                       </div>
-                    ))}
+
+                      <h3 className="font-medium text-[var(--text-main)] truncate text-[12px]">
+                        {item.title}
+                      </h3>
+
+                      <div className="flex items-center justify-between pt-1 text-[11px] text-[var(--text-subtle)]">
+                        <span>Due {item.deadlineFormatted}</span>
+                        <Link
+                          href={`/dashboard/courses/${item.courseId}?tab=assignments`}
+                          className="font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Submit</span>
+                          <ArrowRight className="w-2.5 h-2.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div
-                  style={{
-                    backgroundColor: 'var(--bg-subtle)',
-                    color: 'var(--text-muted)',
-                  }}
-                  className="p-4 rounded-xl text-center text-xs space-y-1.5"
-                >
-                  <p className="font-medium text-emerald-400 flex items-center justify-center gap-1.5">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>All caught up!</span>
+                <div className="p-3.5 rounded-md text-center text-xs space-y-1 bg-[var(--bg-subtle)]">
+                  <p className="font-medium text-[var(--color-success)] flex items-center justify-center gap-1.5 text-[12px]">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>No pending deliverables</span>
                   </p>
-                  <p className="text-[11px]">No pending course assignments due.</p>
+                  <p className="text-[11px] text-[var(--text-subtle)]">All course assignments are submitted.</p>
                 </div>
               )}
             </div>
 
-            {/* 2. Recent Activity Card */}
-            <div className="app-card p-6 space-y-4">
-              <h2
-                style={{
-                  color: 'var(--text-main)',
-                  fontSize: '1.05rem',
-                  fontWeight: 700,
-                }}
-                className="flex items-center gap-2"
-              >
-                <Clock className="w-4 h-4 text-cyan-400" />
-                <span>Recent Activity</span>
-              </h2>
+            {/* 3. Evaluation Ledger (Recent Activity) */}
+            <div className="app-card p-5 space-y-3.5">
+              <div className="flex items-center justify-between pb-1 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)] font-mono">
+                    Evaluation Ledger
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono text-[var(--text-subtle)]">
+                  Recent Results
+                </span>
+              </div>
 
               {analytics && analytics.recentActivity.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {analytics.recentActivity.map((act) => (
                     <div
                       key={act.id}
                       style={{
                         backgroundColor: 'var(--bg-subtle)',
-                        border: '1px solid var(--border-color)',
+                        border: '1px solid var(--border-subtle)',
                       }}
-                      className="p-3.5 rounded-xl flex items-center justify-between text-xs"
+                      className="p-2.5 rounded-md flex items-center justify-between text-xs"
                     >
                       <div className="overflow-hidden pr-2">
-                        <div style={{ color: 'var(--text-main)' }} className="font-semibold truncate">
+                        <div className="font-medium text-[var(--text-main)] truncate text-[12px]">
                           {act.title}
                         </div>
-                        <div style={{ color: 'var(--text-subtle)', fontSize: '0.72rem', marginTop: '0.15rem' }}>
-                          {act.courseCode} · {act.topic}
+                        <div className="font-mono text-[10px] text-[var(--text-subtle)] mt-0.5">
+                          {act.courseCode} • {act.topic}
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                        <span className="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)]">
                           {act.score}/{act.maxScore} ({act.percentage}%)
                         </span>
-                        <div style={{ color: 'var(--text-subtle)', fontSize: '0.68rem', marginTop: '0.2rem' }}>
+                        <div className="font-mono text-[9px] text-[var(--text-subtle)] mt-1">
                           {new Date(act.createdAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -686,14 +540,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div
-                  style={{
-                    backgroundColor: 'var(--bg-subtle)',
-                    color: 'var(--text-muted)',
-                  }}
-                  className="p-5 rounded-xl text-center text-xs"
-                >
-                  <span>No recent activity recorded yet.</span>
+                <div className="p-3.5 rounded-md text-center text-xs bg-[var(--bg-subtle)] text-[var(--text-subtle)]">
+                  <span>No evaluation records logged yet.</span>
                 </div>
               )}
             </div>
@@ -705,33 +553,32 @@ export default function DashboardPage() {
       {/* Create Course Modal */}
       {showCreateModal && (
         <div
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)' }}
           className="fixed inset-0 flex items-center justify-center z-50 p-4"
         >
           <div
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-            className="w-full max-w-md border rounded-2xl p-6 shadow-2xl space-y-4"
+            className="w-full max-w-md border rounded-lg p-6 shadow-xl space-y-4"
           >
-            <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
-              <h2 style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: 700 }}>
-                Create New Course
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+              <h2 className="text-base font-semibold text-[var(--text-main)]">
+                Create New Academic Course
               </h2>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                style={{ color: 'var(--text-muted)' }}
-                className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
               >
                 ✕
               </button>
             </div>
             <form onSubmit={handleCreateCourse} className="space-y-3.5">
               <div>
-                <label style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }} className="block uppercase mb-1">
+                <label className="editorial-kicker block mb-1">
                   Course Code
                 </label>
                 <input
-                  className="app-input uppercase"
+                  className="app-input uppercase font-mono text-xs"
                   placeholder="e.g. CS201"
                   value={courseForm.code}
                   onChange={(e) => setCourseForm({ ...courseForm, code: e.target.value })}
@@ -740,11 +587,11 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }} className="block uppercase mb-1">
+                <label className="editorial-kicker block mb-1">
                   Course Title
                 </label>
                 <input
-                  className="app-input"
+                  className="app-input text-xs"
                   placeholder="e.g. Data Structures & Algorithms"
                   value={courseForm.title}
                   onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
@@ -753,18 +600,18 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }} className="block uppercase mb-1">
-                  Description
+                <label className="editorial-kicker block mb-1">
+                  Syllabus Description
                 </label>
                 <textarea
-                  className="app-input resize-none h-20"
-                  placeholder="Course overview and syllabus details..."
+                  className="app-input resize-none h-20 text-xs"
+                  placeholder="Overview of course topics, prerequisites, and learning objectives..."
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -787,20 +634,20 @@ export default function DashboardPage() {
       {/* Enroll Course Modal */}
       {showEnrollModal && (
         <div
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)' }}
           className="fixed inset-0 flex items-center justify-center z-50 p-4"
         >
           <div
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-            className="w-full max-w-sm border rounded-2xl p-6 shadow-2xl space-y-4"
+            className="w-full max-w-sm border rounded-lg p-6 shadow-xl space-y-4"
           >
             <div className="flex items-start justify-between">
               <div>
-                <h2 style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: 700 }}>
+                <h2 className="text-base font-semibold text-[var(--text-main)]">
                   Enroll in Course
                 </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.5, marginTop: '0.25rem' }}>
-                  Enter the course code provided by your instructor (e.g. CS101, CCSET201).
+                <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                  Enter the course code provided by your instructor (e.g. <span className="font-mono">CS101</span>, <span className="font-mono">CSET201</span>).
                 </p>
               </div>
               <button
@@ -811,8 +658,7 @@ export default function DashboardPage() {
                   setEnrollSuccess(null);
                 }}
                 disabled={enrollLoading}
-                style={{ color: 'var(--text-muted)' }}
-                className="p-1 rounded-lg hover:opacity-80 cursor-pointer"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
               >
                 ✕
               </button>
@@ -820,14 +666,7 @@ export default function DashboardPage() {
 
             {/* Error Message inside modal */}
             {enrollError && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                  borderColor: 'rgba(239, 68, 68, 0.3)',
-                  color: '#F87171',
-                }}
-                className="p-3 rounded-lg border text-xs flex items-center gap-2"
-              >
+              <div className="p-3 rounded-md text-xs flex items-center gap-2 border border-red-500/30 bg-red-500/10 text-red-500">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{enrollError}</span>
               </div>
@@ -835,14 +674,7 @@ export default function DashboardPage() {
 
             {/* Success Message inside modal */}
             {enrollSuccess && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                  borderColor: 'rgba(16, 185, 129, 0.3)',
-                  color: '#34D399',
-                }}
-                className="p-3 rounded-lg border text-xs flex items-center gap-2"
-              >
+              <div className="p-3 rounded-md text-xs flex items-center gap-2 border border-emerald-500/30 bg-emerald-500/10 text-emerald-500">
                 <CheckCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{enrollSuccess}</span>
               </div>
@@ -850,7 +682,7 @@ export default function DashboardPage() {
 
             <form onSubmit={handleEnroll} className="space-y-3.5">
               <div>
-                <label style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }} className="block uppercase mb-1">
+                <label className="editorial-kicker block mb-1">
                   Course Code
                 </label>
                 <input
@@ -867,7 +699,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -887,8 +719,8 @@ export default function DashboardPage() {
                 >
                   {enrollLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Enrolling...</span>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Verifying...</span>
                     </>
                   ) : (
                     <span>Enroll Now</span>
